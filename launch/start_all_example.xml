@@ -1,0 +1,10 @@
+<launch>
+  <include file="$(find velodyne_pointcloud)/launch/VLP16_points.launch" />
+  <node pkg="tf"
+        type="static_transform_publisher"
+        name="velodyne_tf_broadcaster"
+        args="0 0 1 -1 0 0 0 base_link velodyne 100" />
+  
+  <node name="spot_ros_interface" pkg="spot_ros_interface" type="spot_ros_interface.py" args="--username 'USERNAME' --password 'PASSWORD' SPOT_IP" respawn="false" />
+
+</launch>
