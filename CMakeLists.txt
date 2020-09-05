@@ -2,6 +2,7 @@ PROJECT(spot_autonomy)
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
 SET(CMAKE_CXX_FLAGS "-march=native -Wall -Werror -g")
+set(CMAKE_CXX_STANDARD 14)
 
 IF(${CMAKE_BUILD_TYPE} MATCHES "Release")
   MESSAGE(STATUS "Additional Flags for Release mode")
@@ -68,16 +69,15 @@ TARGET_LINK_LIBRARIES(navigation gflags roslib roscpp pthread boost_system
     rt glog rosbag amrl_shared_lib ${LUA_LIBRARIES}
     ${BUILD_SPECIFIC_LIBRARIES})
 
-#  ROSBUILD_ADD_EXECUTABLE(autonomy_arbiter
-#      autonomy_arbiter/autonomy_arbiter.cc)
-#  TARGET_INCLUDE_DIRECTORIES(autonomy_arbiter PRIVATE
-#      shared_lib
-#      config_reader/include
-#      ${LUA_INCLUDE_DIR})
-#  TARGET_LINK_LIBRARIES(autonomy_arbiter gflags roslib roscpp pthread boost_system
-#      rt glog rosbag amrl_shared_lib ${LUA_LIBRARIES}
-#      ${BUILD_SPECIFIC_LIBRARIES})
-#  
+ ROSBUILD_ADD_EXECUTABLE(joystick
+     joystick/joystick_driver.cc
+     joystick/joystick.cc)
+ TARGET_INCLUDE_DIRECTORIES(joystick PRIVATE
+     amrl_shared_lib)
+ TARGET_LINK_LIBRARIES(joystick gflags roslib roscpp pthread boost_system
+     rt glog rosbag amrl_shared_lib
+     ${BUILD_SPECIFIC_LIBRARIES})
+
 #  ROSBUILD_ADD_EXECUTABLE(gps_translator
 #      gps/gps_translator.cc
 #      visualization/visualization.cc)
