@@ -5,6 +5,38 @@
         name="velodyne_tf_broadcaster"
         args="0 0 1 -1 0 0 0 base_link velodyne 100" />
   
-  <node name="spot_ros_interface" pkg="spot_ros_interface" type="spot_ros_interface.py" args="--username 'USERNAME' --password 'PASSWORD' SPOT_IP" respawn="false" />
+  <node name="spot_ros_interface" 
+      pkg="spot_ros_interface"
+      type="spot_ros_interface.py" 
+      args="--username 'USERNAME' --password 'PASSWORD' SPOT_IP" 
+      respawn="false" 
+      required="true" />
 
+  <node name="websocket" 
+      pkg="spot_autonomy"
+      type="websocket"
+      respawn="true"
+      respawn_delay="2" />
+
+  <node name="joystick" 
+      pkg="spot_autonomy"
+      type="joystick"
+      args="--idx 0" 
+      respawn="true"
+      respawn_delay="2" />
+
+  <node name="enml" 
+      pkg="spot_autonomy"
+      type="enml"
+      args="-c config -r ut_spot.lua" 
+      respawn="true"
+      respawn_delay="2" />
+
+  <node name="navigation" 
+      pkg="spot_autonomy"
+      type="navigation"
+      args="" 
+      respawn="true"
+      respawn_delay="2" />
+      
 </launch>
