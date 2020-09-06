@@ -5,9 +5,9 @@ UT Spot Autonomy Stack
 ## Dependencies
 1. [ROS](http://wiki.ros.org/ROS/Installation)
 1. System dependencies
-  ```
-  sudo apt install qt5-default libqt5websockets5-dev libgoogle-glog-dev libgflags-dev
-  ```
+    ```
+    sudo apt install qt5-default libqt5websockets5-dev libgoogle-glog-dev libgflags-dev
+    ```
 1. [spot-ros-wrapper](https://github.com/ut-amrl/spot-ros-wrapper)
 
 ## Build
