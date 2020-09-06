@@ -1,6 +1,10 @@
 PROJECT(spot_autonomy)
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
+SET(CMAKE_AUTOMOC ON)
+SET(CMAKE_AUTORCC ON)
+SET(CMAKE_AUTOUIC ON)
+
 SET(CMAKE_CXX_FLAGS "-march=native -Wall -Werror -g")
 set(CMAKE_CXX_STANDARD 14)
 
@@ -17,6 +21,8 @@ ENDIF()
 
 MESSAGE(STATUS "SOURCE DIR: ${PROJECT_SOURCE_DIR}")
 
+FIND_PACKAGE(Qt5 COMPONENTS Core Widgets WebSockets REQUIRED)
+SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 FIND_PACKAGE(Lua51 REQUIRED)
 FIND_PACKAGE(Eigen3 REQUIRED)
@@ -76,6 +82,21 @@ TARGET_LINK_LIBRARIES(navigation gflags roslib roscpp pthread boost_system
      amrl_shared_lib)
  TARGET_LINK_LIBRARIES(joystick gflags roslib roscpp pthread boost_system
      rt glog rosbag amrl_shared_lib
+     ${BUILD_SPECIFIC_LIBRARIES})
+
+ROSBUILD_ADD_EXECUTABLE(websocket
+     webviz/src/websocket/websocket_main.cc
+     webviz/src/websocket/websocket.cc)
+ TARGET_INCLUDE_DIRECTORIES(websocket PRIVATE
+     amrl_shared_lib
+     webviz/src)
+ TARGET_LINK_LIBRARIES(websocket
+     Qt5::Core
+     Qt5::Widgets
+     Qt5::WebSockets
+     glog
+     gflags
+     amrl_shared_lib
      ${BUILD_SPECIFIC_LIBRARIES})
 
 #  ROSBUILD_ADD_EXECUTABLE(gps_translator
