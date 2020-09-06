@@ -28,7 +28,7 @@
   <node name="enml" 
       pkg="spot_autonomy"
       type="enml"
-      args="-c config -r ut_spot.lua" 
+      args="-c enml/config" 
       respawn="true"
       respawn_delay="2" />
 
