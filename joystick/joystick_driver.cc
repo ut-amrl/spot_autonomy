@@ -154,8 +154,8 @@ float JoystickValue(float x, float scale) {
 
 void SetManualCommand(const vector<int32_t>& buttons, 
                       const vector<float>& axes) {
-  const int kSitBtn = 7;
-  const int kStandBtn = 6;
+  const int kSitBtn = 0;
+  const int kStandBtn = 3;
   const int kXAxis = 4;
   const int kYAxis = 3;
   const int kRAxis = 0;
@@ -171,6 +171,7 @@ void SetManualCommand(const vector<int32_t>& buttons,
       if (!sit_service_.call(srv)) {
         fprintf(stderr, "Error calling sit service!\n");
       }
+      Sleep(0.5);
     } else if (buttons[kStandBtn]) {
       spot_ros_srvs::Stand srv;
       srv.request.body_pose.translation.x = 0;
@@ -183,6 +184,7 @@ void SetManualCommand(const vector<int32_t>& buttons,
       if (!stand_service_.call(srv)) {
         fprintf(stderr, "Error calling stand service!\n");
       }
+      Sleep(0.5);
     }
   }
 }
