@@ -30,6 +30,8 @@
 #include "geometry_msgs/Twist.h"
 #include "glog/logging.h"
 #include "sensor_msgs/Joy.h"
+#include "spot_ros_srvs/Stand.h"
+#include "std_srvs/SetBool.h"
 #include "gflags/gflags.h"
 #include "joystick/joystick.h"
 #include "util/timer.h"
@@ -57,6 +59,8 @@ double t_last_cmd_ = 0;
 geometry_msgs::Twist last_cmd_;
 geometry_msgs::Twist manual_cmd_;
 ros::Publisher cmd_publisher_;
+ros::ServiceClient sit_service_;
+ros::ServiceClient stand_service_;
 
 geometry_msgs::Twist ZeroTwist() {
   geometry_msgs::Twist msg;
@@ -148,7 +152,10 @@ float JoystickValue(float x, float scale) {
   return ((x - math_util::Sign(x) * kDeadZone) / (1.0f - kDeadZone) * scale);
 }
 
-void SetManualCommand(const vector<float>& axes) {
+void SetManualCommand(const vector<int32_t>& buttons, 
+                      const vector<float>& axes) {
+  const int kSitBtn = 7;
+  const int kStandBtn = 6;
   const int kXAxis = 4;
   const int kYAxis = 3;
   const int kRAxis = 0;
@@ -157,6 +164,27 @@ void SetManualCommand(const vector<float>& axes) {
   manual_cmd_.linear.x = JoystickValue(axes[kXAxis], -kMaxLinearSpeed);
   manual_cmd_.linear.y = JoystickValue(axes[kYAxis], -kMaxLinearSpeed);
   manual_cmd_.angular.z = JoystickValue(axes[kRAxis], -kMaxRotationSpeed);
+  if (state_ == JoystickState::MANUAL) {
+    if (buttons[kSitBtn]) {
+      std_srvs::SetBool srv;
+      srv.request.data = true;
+      if (!sit_service_.call(srv)) {
+        fprintf(stderr, "Error calling sit service!\n");
+      }
+    } else if (buttons[kStandBtn]) {
+      spot_ros_srvs::Stand srv;
+      srv.request.body_pose.translation.x = 0;
+      srv.request.body_pose.translation.y = 0;
+      srv.request.body_pose.translation.z = 0;
+      srv.request.body_pose.rotation.x = 0;
+      srv.request.body_pose.rotation.y = 0;
+      srv.request.body_pose.rotation.z = 0;
+      srv.request.body_pose.rotation.w = 1;
+      if (!stand_service_.call(srv)) {
+        fprintf(stderr, "Error calling stand service!\n");
+      }
+    }
+  }
 }
 
 int main(int argc, char** argv) {
@@ -168,7 +196,8 @@ int main(int argc, char** argv) {
   ros::Subscriber cmd_subscriber = 
       n.subscribe("navigation/cmd_vel", 10, CommandCallback);
   cmd_publisher_ = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
-
+  stand_service_ = n.serviceClient<spot_ros_srvs::Stand>("stand_cmd");
+  sit_service_ = n.serviceClient<std_srvs::SetBool>("sit_cmd");
   Joystick joystick;
   if (!joystick.Open(FLAGS_idx)) {
     fprintf(stderr, "ERROR: Unable to open joystick)!\n");
@@ -188,7 +217,7 @@ int main(int argc, char** argv) {
     joystick.GetAllAxes(&axes);
     joystick.GetAllButtons(&buttons);
     UpdateState(buttons);
-    SetManualCommand(axes);
+    SetManualCommand(buttons, axes);
     PublishCommand();
     msg.header.stamp = ros::Time::now();
     msg.axes = axes;

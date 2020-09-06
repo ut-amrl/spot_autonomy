@@ -12,4 +12,6 @@
   <depend package="tf"/>
   <depend package="amrl_msgs"/>
   <depend package="rosbag"/>
+  <depend package="spot_ros_srvs"/>
+  <depend package="spot_ros_msgs"/>
 </package>
