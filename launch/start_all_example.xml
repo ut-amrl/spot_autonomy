@@ -28,14 +28,14 @@
   <node name="enml" 
       pkg="spot_autonomy"
       type="enml"
-      args="-c enml/config" 
+      args="-c $(find spot_autonomy)/enml/config -m $(find spot_autonomy)/maps" 
       respawn="true"
       respawn_delay="2" />
 
   <node name="navigation" 
       pkg="spot_autonomy"
       type="navigation"
-      args="" 
+      args="--map $(find spot_autonomy)/maps/UT_Campus/UT_Campus.navigation.txt" 
       respawn="true"
       respawn_delay="2" />
       
