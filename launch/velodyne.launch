@@ -1,12 +1,25 @@
 <?xml version="1.0"?>
 
+
 <launch>
-    <include file="$(find velodyne_pointcloud)/launch/VLP16_points.launch" />
+    <!-- <include file="$(find velodyne_pointcloud)/launch/VLP16_points.launch" /> -->
+      <!-- declare arguments with default values -->
+  <arg name="calibration" default="$(find velodyne_pointcloud)/params/VLP16db.yaml"/>
+
+    <arg name="manager" default="velodyne_nodelet_manager" />
+
+  <!-- start cloud nodelet -->
+  <include file="$(find velodyne_pointcloud)/launch/VLP16_points.launch">
+    <arg name="calibration" value="$(arg calibration)"/>
+    <arg name="manager" value="$(arg manager)" />
+    <arg name="max_range" value="140"/>
+    <arg name="min_range" value="0.4"/>
+  </include>
 
     <node pkg="tf"
         type="static_transform_publisher"
         name="velodyne_tf_broadcaster"
-        args="0 0 1 -1 0 0 0 base_link velodyne 100" />
+        args="0 0 1 -1 0 0 0 base_link velodyne 20" />
 
     <!-- run pointcloud_to_laserscan node -->
     <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan_high_beams">
@@ -36,11 +49,9 @@
 
     </node>
 
-    <arg name="manager" default="velodyne_nodelet_manager" />
-
 
     <!-- push pointcloud_to_laserscan nodelet into sensor's nodelet manager-->
-    <node pkg="nodelet" type="nodelet" name="pointcloud_to_laserscan" args="load pointcloud_to_laserscan/pointcloud_to_laserscan_nodelet $(arg manager)">
+    <!-- <node pkg="nodelet" type="nodelet" name="pointcloud_to_laserscan" args="load pointcloud_to_laserscan/pointcloud_to_laserscan_nodelet $(arg manager)">
 
         <remap from="cloud_in" to="/velodyne_points"/>
         <remap from="scan" to="/velodyne_2dscan"/>
@@ -65,6 +76,6 @@
             concurrency_level: 1
         </rosparam>
 
-    </node>
+    </node> -->
 
 </launch>
