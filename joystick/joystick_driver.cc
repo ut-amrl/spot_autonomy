@@ -147,7 +147,7 @@ void PublishCommand() {
 #include "math/math_util.h"
 
 float JoystickValue(float x, float scale) {
-  static const float kDeadZone = 0.05;
+  static const float kDeadZone = 0.02;
   if (fabs(x) < kDeadZone) return 0;
   return ((x - math_util::Sign(x) * kDeadZone) / (1.0f - kDeadZone) * scale);
 }
@@ -160,7 +160,7 @@ void SetManualCommand(const vector<int32_t>& buttons,
   const int kYAxis = 3;
   const int kRAxis = 0;
   const float kMaxLinearSpeed = 1.0;
-  const float kMaxRotationSpeed = math_util::DegToRad(180);
+  const float kMaxRotationSpeed = math_util::DegToRad(90);
   manual_cmd_.linear.x = JoystickValue(axes[kXAxis], -kMaxLinearSpeed);
   manual_cmd_.linear.y = JoystickValue(axes[kYAxis], -kMaxLinearSpeed);
   manual_cmd_.angular.z = JoystickValue(axes[kRAxis], -kMaxRotationSpeed);
