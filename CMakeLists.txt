@@ -99,6 +99,17 @@ ROSBUILD_ADD_EXECUTABLE(websocket
      amrl_shared_lib
      ${BUILD_SPECIFIC_LIBRARIES})
 
+ROSBUILD_ADD_EXECUTABLE(pointcloud_to_laserscan
+    pointcloud_to_laserscan/pointcloud_to_laserscan_main.cc)
+TARGET_INCLUDE_DIRECTORIES(pointcloud_to_laserscan PRIVATE
+    amrl_shared_lib)
+TARGET_LINK_LIBRARIES(pointcloud_to_laserscan
+    glog
+    gflags
+    amrl_shared_lib
+    roscpp
+    ${BUILD_SPECIFIC_LIBRARIES})
+
 #  ROSBUILD_ADD_EXECUTABLE(gps_translator
 #      gps/gps_translator.cc
 #      visualization/visualization.cc)
