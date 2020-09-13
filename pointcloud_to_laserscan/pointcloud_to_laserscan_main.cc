@@ -78,6 +78,8 @@ ros::Publisher scan_publisher_;
 
 
 void PointcloudCallback(const sensor_msgs::PointCloud2& msg) {
+  static CumulativeFunctionTimer function_timer_(__FUNCTION__);
+  CumulativeFunctionTimer::Invocation invoke(&function_timer_);
   if (FLAGS_v > 1) {
     printf("PointCloud2 message, t=%f\n", msg.header.stamp.toSec());
   }
