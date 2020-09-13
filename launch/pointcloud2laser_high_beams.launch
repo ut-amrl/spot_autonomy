@@ -7,7 +7,7 @@
             name="pointcloud_to_laserscan_high_beams">
         
         <remap from="cloud_in" to="/velodyne_points"/>
-        <remap from="scan" to="/velodyne_2dscan_high_beams"/>
+        <remap from="scan" to="/velodyne_2dscan_highbeams"/>
         <rosparam>
             target_frame: base_link
             transform_tolerance: 0.01
