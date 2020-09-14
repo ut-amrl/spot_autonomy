@@ -189,6 +189,37 @@ void SetManualCommand(const vector<int32_t>& buttons,
   }
 }
 
+void LoggingControls(const vector<int32_t>& buttons) {
+  // See if recording should start.
+  if (buttons.size() >=15 &&
+      buttons[11] == 1) {
+    static bool recording = false;
+    if (recording && buttons[1] == 1) {
+      recording = false;
+      if (system("killall rosbag") != 0) {
+        printf("Unable to kill rosbag!\n");
+      } else {
+        printf("Stopped recording rosbag.\n");
+      }
+      Sleep(0.5);
+    } else if (!recording && msg.buttons[3] == 1) {
+
+      printf("Starting recording rosbag...\n");
+      if (system("rosbag record /status /velodyne_points /scan /imu/data "
+                 "/jackal_velocity_controller/odom /gps/fix /gps/vel "
+                 "/imu/data_raw /odometry/filtered /odometry/gps /tf "
+                 "/localization /move_base_simple/goal /navigation/cmd_vel "
+                 "/set_nav_target /set_pose &") != 0) {
+        printf("Unable to record\n");
+      } else {
+        printf("Started recording rosbag.\n");
+        recording = true;
+      }
+      Sleep(0.5);
+    }
+  }
+} 
+
 int main(int argc, char** argv) {
   google::ParseCommandLineFlags(&argc, &argv, false);
   google::InitGoogleLogging(argv[0]);
@@ -221,6 +252,7 @@ int main(int argc, char** argv) {
     UpdateState(buttons);
     SetManualCommand(buttons, axes);
     PublishCommand();
+    LoggingControls(buttons);
     msg.header.stamp = ros::Time::now();
     msg.axes = axes;
     msg.buttons = buttons;
