@@ -202,7 +202,7 @@ void LoggingControls(const vector<int32_t>& buttons) {
         printf("Stopped recording rosbag.\n");
       }
       Sleep(0.5);
-    } else if (!recording && msg.buttons[3] == 1) {
+    } else if (!recording && buttons[3] == 1) {
 
       printf("Starting recording rosbag...\n");
       if (system("rosbag record /status /velodyne_points /scan /imu/data "
