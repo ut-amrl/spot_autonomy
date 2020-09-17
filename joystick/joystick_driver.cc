@@ -31,6 +31,7 @@
 #include "glog/logging.h"
 #include "sensor_msgs/Joy.h"
 #include "spot_ros_srvs/Stand.h"
+#include "std_msgs/Bool.h"
 #include "std_srvs/SetBool.h"
 #include "gflags/gflags.h"
 #include "joystick/joystick.h"
@@ -59,6 +60,7 @@ double t_last_cmd_ = 0;
 geometry_msgs::Twist last_cmd_;
 geometry_msgs::Twist manual_cmd_;
 ros::Publisher cmd_publisher_;
+ros::Publisher enable_autonomy_publisher_;
 ros::ServiceClient sit_service_;
 ros::ServiceClient stand_service_;
 
@@ -227,6 +229,7 @@ int main(int argc, char** argv) {
   cmd_publisher_ = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
   stand_service_ = n.serviceClient<spot_ros_srvs::Stand>("stand_cmd");
   sit_service_ = n.serviceClient<std_srvs::SetBool>("sit_cmd");
+  enable_autonomy_publisher_ = n.advertise<std_msgs::Bool>("autonomy_arbiter/enabled", 1);
   Joystick joystick;
   if (!joystick.Open(FLAGS_idx)) {
     fprintf(stderr, "ERROR: Unable to open joystick)!\n");
@@ -241,6 +244,8 @@ int main(int argc, char** argv) {
 
   manual_cmd_ = ZeroTwist();
   RateLoop rate_loop(60);
+  std_msgs::Bool enable_autonomy_msg;
+  enable_autonomy_msg.data = false;
   while (ros::ok()) {
     joystick.ProcessEvents(2);
     joystick.GetAllAxes(&axes);
@@ -253,6 +258,12 @@ int main(int argc, char** argv) {
     msg.axes = axes;
     msg.buttons = buttons;
     publisher.publish(msg);
+    if (state_ == JoystickState::AUTONOMOUS) {
+      enable_autonomy_msg.data = true;
+    } else {
+      enable_autonomy_msg.data = false;
+    }
+    enable_autonomy_publisher_.publish(enable_autonomy_msg);
     ros::spinOnce();
     rate_loop.Sleep();
   }
