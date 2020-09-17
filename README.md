@@ -19,3 +19,14 @@ UT Spot Autonomy Stack
 1. Replicate `launch/start_all_example.launch` to `launch/start_all.launch`, filling in your Spot robot username, password, and IP address.
 1. `roslaunch spot_autonomy start_all.launch`
 
+## Joystick
+
+* Left bumper: Press and hold for manual control
+* Right number: Press to enable autonomous mode, press any other button to go out of autonomus mode
+* Left joystick: Yaw control when in manual mode
+* Right joystick + LB: Translation control
+* Y(Yellow) button + LB: Stand up
+* A(Green) button + LB: Sit down
+* X(Blue) button + LB: Start rosbag record
+* B(Red) button + LB: Stop resbag record
+

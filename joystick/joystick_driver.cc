@@ -191,8 +191,8 @@ void SetManualCommand(const vector<int32_t>& buttons,
 
 void LoggingControls(const vector<int32_t>& buttons) {
   // See if recording should start.
-  if (buttons.size() >=15 &&
-      buttons[11] == 1) {
+  if (buttons.size() >=4 &&
+      buttons[4] == 1) {
     static bool recording = false;
     if (recording && buttons[1] == 1) {
       recording = false;
@@ -202,14 +202,10 @@ void LoggingControls(const vector<int32_t>& buttons) {
         printf("Stopped recording rosbag.\n");
       }
       Sleep(0.5);
-    } else if (!recording && buttons[3] == 1) {
+    } else if (!recording && buttons[2] == 1) {
 
       printf("Starting recording rosbag...\n");
-      if (system("rosbag record /status /velodyne_points /scan /imu/data "
-                 "/jackal_velocity_controller/odom /gps/fix /gps/vel "
-                 "/imu/data_raw /odometry/filtered /odometry/gps /tf "
-                 "/localization /move_base_simple/goal /navigation/cmd_vel "
-                 "/set_nav_target /set_pose &") != 0) {
+      if (system("rosbag record -a &") != 0) {
         printf("Unable to record\n");
       } else {
         printf("Started recording rosbag.\n");
