@@ -61,6 +61,8 @@
   <node pkg="spot_autonomy"
       type="pointcloud_to_laserscan"
       name="pointcloud_to_laserscan_highbeams"
-      args="--config $(find spot_autonomy)/config/highbeams.lua" />
+      args="--config $(find spot_autonomy)/config/highbeams.lua"  
+      respawn="true"
+      respawn_delay="2" />
 
 </launch>

@@ -28,7 +28,7 @@
   <node name="navigation" 
       pkg="spot_autonomy"
       type="navigation"
-      args="--map $(find spot_autonomy)/maps/UT_Campus_With_Stairs/UT_Campus_With_Stairs.navigation.txt" 
+      args="-maps_dir $(find spot_autonomy)/maps -map UT_Campus_With_Stairs -odom_topic odom -laser_topic /velodyne_2dscan_highbeams" 
       respawn="true"
       respawn_delay="2" />
 

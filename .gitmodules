@@ -16,3 +16,6 @@
 [submodule "maps"]
 	path = maps
 	url = git@github.com:ut-amrl/amrl_maps
+[submodule "robofleet_client"]
+	path = robofleet_client
+	url = git@github.com:ut-amrl/robofleet_client

@@ -21,8 +21,12 @@ ENDIF()
 
 MESSAGE(STATUS "SOURCE DIR: ${PROJECT_SOURCE_DIR}")
 
-FIND_PACKAGE(Qt5 COMPONENTS Core Widgets WebSockets REQUIRED)
-SET(CMAKE_INCLUDE_CURRENT_DIR ON)
+# Qt setup (needs to precede executable)
+set(CMAKE_AUTOMOC on)
+set(CMAKE_AUTORCC on)
+set(CMAKE_AUTOUIC on)
+set(CMAKE_INCLUDE_CURRENT_DIR on)
+find_package(Qt5 COMPONENTS Core Widgets WebSockets REQUIRED)
 
 FIND_PACKAGE(Lua51 REQUIRED)
 FIND_PACKAGE(Eigen3 REQUIRED)
@@ -113,6 +117,32 @@ TARGET_LINK_LIBRARIES(pointcloud_to_laserscan
     ${LUA_LIBRARIES}
     ${BUILD_SPECIFIC_LIBRARIES})
 
+# ROSBUILD_ADD_EXECUTABLE(robofleet_client
+#     robofleet_client/src/main.cpp)
+# TARGET_SOURCES(robofleet_client PRIVATE
+#     robofleet_client/src/main.cpp
+#     robofleet_client/src/encode.hpp
+#     robofleet_client/src/decode.hpp
+#     robofleet_client/src/WsClient.hpp
+#     robofleet_client/src/WsServer.hpp
+#     robofleet_client/src/WebVizConstants.hpp
+#     robofleet_client/src/RosClientNode.hpp
+# )
+# TARGET_INCLUDE_DIRECTORIES(robofleet_client PRIVATE
+#     robofleet_client/src
+#     robofleet_client/include
+#     amrl_shared_lib
+#     ${LUA_INCLUDE_DIR})
+# TARGET_LINK_LIBRARIES(robofleet_client
+#     Qt5::Core
+#     Qt5::Widgets
+#     Qt5::WebSockets
+#     glog
+#     gflags
+#     amrl_shared_lib
+#     roscpp
+#     ${LUA_LIBRARIES}
+#     ${BUILD_SPECIFIC_LIBRARIES})
 
 #  ROSBUILD_ADD_EXECUTABLE(gps_translator
 #      gps/gps_translator.cc
