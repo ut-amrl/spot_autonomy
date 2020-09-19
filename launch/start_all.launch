@@ -1,0 +1,35 @@
+<launch>
+  <!-- Start Velodyne, and 3D to 2D conversions -->
+  <include file="$(find spot_autonomy)/launch/velodyne.launch" />
+
+  <include file="$(find spot_autonomy)/launch/start_spot_interface.launch" />  
+
+  <node name="joystick" 
+      pkg="spot_autonomy"
+      type="joystick"
+      args="--v 2" 
+      respawn="true"
+      respawn_delay="2" />
+
+  <node name="websocket" 
+      pkg="spot_autonomy"
+      type="websocket"
+      args="scan:=velodyne_2dscan_highbeams" 
+      respawn="true"
+      respawn_delay="2" />
+
+  <node name="enml" 
+      pkg="spot_autonomy"
+      type="enml"
+      args="-c $(find spot_autonomy)/config -r enml.lua -m $(find spot_autonomy)/maps" 
+      respawn="true"
+      respawn_delay="2" />
+
+  <node name="navigation" 
+      pkg="spot_autonomy"
+      type="navigation"
+      args="--map $(find spot_autonomy)/maps/UT_Campus_With_Stairs/UT_Campus_With_Stairs.navigation.txt" 
+      respawn="true"
+      respawn_delay="2" />
+
+</launch>

@@ -1,4 +1,4 @@
-launch/start_all.launch
+launch/start_spot_interface.launch
 bin
 build
 lib
