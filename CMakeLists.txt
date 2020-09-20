@@ -5,7 +5,7 @@ SET(CMAKE_AUTOMOC ON)
 SET(CMAKE_AUTORCC ON)
 SET(CMAKE_AUTOUIC ON)
 
-SET(CMAKE_CXX_FLAGS "-march=native -Wall -Werror -g")
+SET(CMAKE_CXX_FLAGS "-march=native -Wall -Werror -g -Wno-unused-function")
 set(CMAKE_CXX_STANDARD 14)
 
 IF(${CMAKE_BUILD_TYPE} MATCHES "Release")
@@ -117,32 +117,32 @@ TARGET_LINK_LIBRARIES(pointcloud_to_laserscan
     ${LUA_LIBRARIES}
     ${BUILD_SPECIFIC_LIBRARIES})
 
-# ROSBUILD_ADD_EXECUTABLE(robofleet_client
-#     robofleet_client/src/main.cpp)
-# TARGET_SOURCES(robofleet_client PRIVATE
-#     robofleet_client/src/main.cpp
-#     robofleet_client/src/encode.hpp
-#     robofleet_client/src/decode.hpp
-#     robofleet_client/src/WsClient.hpp
-#     robofleet_client/src/WsServer.hpp
-#     robofleet_client/src/WebVizConstants.hpp
-#     robofleet_client/src/RosClientNode.hpp
-# )
-# TARGET_INCLUDE_DIRECTORIES(robofleet_client PRIVATE
-#     robofleet_client/src
-#     robofleet_client/include
-#     amrl_shared_lib
-#     ${LUA_INCLUDE_DIR})
-# TARGET_LINK_LIBRARIES(robofleet_client
-#     Qt5::Core
-#     Qt5::Widgets
-#     Qt5::WebSockets
-#     glog
-#     gflags
-#     amrl_shared_lib
-#     roscpp
-#     ${LUA_LIBRARIES}
-#     ${BUILD_SPECIFIC_LIBRARIES})
+ROSBUILD_ADD_EXECUTABLE(robofleet_client
+    robofleet_client/src/main.cpp)
+TARGET_SOURCES(robofleet_client PRIVATE
+    robofleet_client/src/main.cpp
+    robofleet_client/src/encode.hpp
+    robofleet_client/src/decode.hpp
+    robofleet_client/src/WsClient.hpp
+    robofleet_client/src/WsServer.hpp
+    robofleet_client/src/WebVizConstants.hpp
+    robofleet_client/src/RosClientNode.hpp
+)
+TARGET_INCLUDE_DIRECTORIES(robofleet_client PRIVATE
+    robofleet_client/src
+    robofleet_client/include
+    amrl_shared_lib
+    ${LUA_INCLUDE_DIR})
+TARGET_LINK_LIBRARIES(robofleet_client
+    Qt5::Core
+    Qt5::Widgets
+    Qt5::WebSockets
+    glog
+    gflags
+    amrl_shared_lib
+    roscpp
+    ${LUA_LIBRARIES}
+    ${BUILD_SPECIFIC_LIBRARIES})
 
 #  ROSBUILD_ADD_EXECUTABLE(gps_translator
 #      gps/gps_translator.cc
