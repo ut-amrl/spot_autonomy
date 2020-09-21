@@ -88,6 +88,15 @@ TARGET_LINK_LIBRARIES(navigation gflags roslib roscpp pthread boost_system
      rt glog rosbag amrl_shared_lib
      ${BUILD_SPECIFIC_LIBRARIES})
 
+ROSBUILD_ADD_EXECUTABLE(status_translator 
+        status_translator/status_translator.cc)
+TARGET_INCLUDE_DIRECTORIES(status_translator PRIVATE
+     amrl_shared_lib)
+TARGET_LINK_LIBRARIES(status_translator gflags roslib 
+        roscpp pthread boost_system
+         rt glog rosbag amrl_shared_lib
+         ${BUILD_SPECIFIC_LIBRARIES})
+
 ROSBUILD_ADD_EXECUTABLE(websocket
      webviz/src/websocket/websocket_main.cc
      webviz/src/websocket/websocket.cc)

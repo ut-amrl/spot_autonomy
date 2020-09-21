@@ -32,4 +32,18 @@
       respawn="true"
       respawn_delay="2" />
 
+  <node name="robofleet_client" 
+      pkg="spot_autonomy"
+      type="robofleet_client"
+      args=""
+      ns="spot"
+      respawn="true"
+      respawn_delay="2" />
+
+  <node name="status_translator" 
+      pkg="spot_autonomy"
+      type="status_translator"
+      args=""
+      respawn="true"
+      respawn_delay="2" />
 </launch>
