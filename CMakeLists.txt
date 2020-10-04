@@ -141,6 +141,7 @@ TARGET_INCLUDE_DIRECTORIES(robofleet_client PRIVATE
     robofleet_client/src
     robofleet_client/include
     amrl_shared_lib
+    config/robofleet_client
     ${LUA_INCLUDE_DIR})
 TARGET_LINK_LIBRARIES(robofleet_client
     Qt5::Core
