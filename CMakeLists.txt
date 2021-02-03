@@ -72,8 +72,10 @@ ROSBUILD_ADD_EXECUTABLE(navigation
     graph_navigation/src/vector_map/vector_map.cc)
 TARGET_INCLUDE_DIRECTORIES(navigation PRIVATE
     graph_navigation/src
+    graph_navigation/src/config_reader/include
+    graph_navigation/src/third_party
     amrl_shared_lib
-    config_reader/include
+#    config_reader/include
     ${LUA_INCLUDE_DIR})
 TARGET_LINK_LIBRARIES(navigation gflags roslib roscpp pthread boost_system
     rt glog rosbag amrl_shared_lib ${LUA_LIBRARIES}

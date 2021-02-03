@@ -1,15 +1,15 @@
 <launch>
   <!-- Start Velodyne, and 3D to 2D conversions -->
-  <include file="$(find spot_autonomy)/launch/velodyne.launch" />
+  <!--include file="$(find spot_autonomy)/launch/velodyne.launch" /-->
 
   <include file="$(find spot_autonomy)/launch/start_spot_interface.launch" />  
 
-  <node name="joystick" 
+  <!--node name="joystick" 
       pkg="spot_autonomy"
       type="joystick"
-      args="--v 2" 
+      args="--><!--v 2" 
       respawn="true"
-      respawn_delay="2" />
+      respawn_delay="2" /-->
 
   <node name="websocket" 
       pkg="spot_autonomy"
@@ -28,9 +28,10 @@
   <node name="navigation" 
       pkg="spot_autonomy"
       type="navigation"
-      args="-maps_dir $(find spot_autonomy)/maps -map UT_Campus_With_Stairs -odom_topic odom -laser_topic /velodyne_2dscan_highbeams --max_speed 1.4" 
+      args="-twist_drive_topic cmd_vel -robot_config $(find spot_autonomy)/graph_navigation/config/navigation.lua -maps_dir $(find spot_autonomy)/maps -map AHG2" 
       respawn="true"
       respawn_delay="2" />
+      <!-- -odom_topic odom -laser_topic /velodyne_2dscan_highbeams --><!--max_speed 1.4 -->
 
   <node name="robofleet_client" 
       pkg="spot_autonomy"
