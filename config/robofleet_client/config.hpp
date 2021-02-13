@@ -3,8 +3,6 @@
 #include <amrl_msgs/RobofleetStatus.h>
 #include <amrl_msgs/RobofleetSubscription.h>
 #include <nav_msgs/Odometry.h>
-#include <geometry_msgs/PoseStamped.h>
-
 #include <sensor_msgs/CompressedImage.h>
 #include <sensor_msgs/LaserScan.h>
 #include <sensor_msgs/NavSatFix.h>
@@ -15,12 +13,15 @@
 #include "WebVizConstants.hpp"
 
 namespace config {
+// URL of robofleet_server instance (ignored in direct mode)
+static const std::string host_url = "wss://robofleet.csres.utexas.edu/robofleet-server/";
+//static const std::string host_url = "ws://localhost:8080";
 // AMRL Robofleet server URL
-static const std::string host_url = "ws://10.0.0.1:8080";
+// static const std::string host_url = "ws://10.0.0.1:8080";
 
 // whether to run a Websocket server instead of a client, to bypass the need
 // for a centralized instance of robofleet_server.
-static const bool direct_mode = false;
+static const bool direct_mode = true;
 // what port to serve on in direct mode
 static const quint16 direct_mode_port = 8080;
 
@@ -63,7 +64,7 @@ static void configure_msg_types(RosClientNode& cn) {
 
   // must send to status topic to list robot in webviz
   cn.register_local_msg_type<amrl_msgs::RobofleetStatus>(
-      "/robofleet_status", webviz_constants::status_topic, 1);
+      "/status", webviz_constants::status_topic, 1);
 
   // must send to subscriptions topic to receive messages from other robots
   cn.register_local_msg_type<amrl_msgs::RobofleetSubscription>(
@@ -80,10 +81,10 @@ static void configure_msg_types(RosClientNode& cn) {
       "/velodyne_2dscan_highbeams", webviz_constants::lidar_2d_topic, 15);
 
   cn.register_local_msg_type<sensor_msgs::CompressedImage>(
-      "/spot_image/compressed", webviz_constants::left_image_topic, 3);
-  // cn.register_local_msg_type<sensor_msgs::CompressedImage>(
-  //     "/stereo/right/image_raw/compressed",
-  //     webviz_constants::right_image_topic, 10);
+      "/stereo/left/image_raw/compressed", webviz_constants::left_image_topic, 10);
+  cn.register_local_msg_type<sensor_msgs::CompressedImage>(
+      "/stereo/right/image_raw/compressed",
+      webviz_constants::right_image_topic, 10);
 
   cn.register_local_msg_type<amrl_msgs::VisualizationMsg>(
       "/visualization", webviz_constants::visualization_topic, 10);
@@ -91,6 +92,7 @@ static void configure_msg_types(RosClientNode& cn) {
   // Set up listeners for remote messages
   cn.register_remote_msg_type<geometry_msgs::PoseStamped>(
       "move_base_simple/goal", "/move_base_simple/goal");
+      
   cn.register_remote_msg_type<amrl_msgs::Localization2DMsg>(
       "initialpose", "/set_pose");
 

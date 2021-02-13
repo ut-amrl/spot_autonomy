@@ -1,21 +1,28 @@
 [submodule "webviz"]
 	path = webviz
 	url = https://github.com/ut-amrl/webviz.git
+	ignore = dirty
 [submodule "enml"]
 	path = enml
 	url = https://github.com/ut-amrl/enml.git
+	ignore = dirty
 [submodule "graph_navigation"]
 	path = graph_navigation
 	url = https://github.com/ut-amrl/graph_navigation.git
+	ignore = dirty
 [submodule "amrl_shared_lib"]
 	path = amrl_shared_lib
 	url = https://github.com/ut-amrl/amrl_shared_lib
+	ignore = dirty
 [submodule "config_reader"]
 	path = config_reader
 	url = https://github.com/ut-amrl/config-reader
+	ignore = dirty
 [submodule "maps"]
 	path = maps
 	url = git@github.com:ut-amrl/amrl_maps
+	ignore = dirty
 [submodule "robofleet_client"]
 	path = robofleet_client
 	url = git@github.com:ut-amrl/robofleet_client
+	ignore = dirty
