@@ -2,14 +2,34 @@
   <!-- Start Velodyne, and 3D to 2D conversions -->
   <!--include file="$(find spot_autonomy)/launch/velodyne.launch" /-->
 
+  <arg name="simulation" default="false"/>
+  <arg name="graph_nav_config" default="navigation.lua" unless="$(arg simulation)"/>
+  <arg name="graph_nav_config" value="navigation.sim.lua" if="$(arg simulation)"/>
+
+  <group unless="$(arg simulation)">
+        <include file="$(find spot_autonomy)/launch/velodyne.launch"/>
+
+        <node name="joystick" 
+            pkg="spot_autonomy"
+            type="joystick"
+            args="--v 2" 
+            respawn="true"
+            respawn_delay="2"/>
+  </group>
+
   <include file="$(find spot_autonomy)/launch/start_spot_interface.launch" />  
 
-  <!--node name="joystick" 
-      pkg="spot_autonomy"
-      type="joystick"
-      args="--><!--v 2" 
-      respawn="true"
-      respawn_delay="2" /-->
+    <!--node name="joystick" 
+            pkg="spot_autonomy"
+            type="joystick"
+            args="--><!--v 2" 
+            respawn="true"
+            respawn_delay="2" /-->
+    <!-- rostopic pub /autonomy_arbiter/enabled std_msgs/Bool "true" -->
+
+  <group if="$(arg simulation)">
+        <node pkg="rostopic" type="rostopic" name="spot_autonomy_arbiter" args="pub -l /autonomy_arbiter/enabled std_msgs/Bool true"/>
+  </group>  
 
   <node name="websocket" 
       pkg="spot_autonomy"
@@ -28,7 +48,7 @@
   <node name="navigation" 
       pkg="spot_autonomy"
       type="navigation"
-      args="-twist_drive_topic cmd_vel -robot_config $(find spot_autonomy)/graph_navigation/config/navigation.lua -maps_dir $(find spot_autonomy)/maps -map AHG2" 
+      args="-twist_drive_topic cmd_vel -robot_config $(find spot_autonomy)/graph_navigation/config/$(arg graph_nav_config) -maps_dir $(find spot_autonomy)/maps -map AHG2"
       respawn="true"
       respawn_delay="2" />
       <!-- -odom_topic odom -laser_topic /velodyne_2dscan_highbeams --><!--max_speed 1.4 -->
