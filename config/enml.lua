@@ -7,7 +7,7 @@ RobotConfig = {
   };
   
   enml = {
-    map_name = "UT_Campus_With_Stairs";
+    map_name = "UT_Campus";
     -- map_name = "AHG2";
     starting_loc_x = 0;
     starting_loc_y = 0;
