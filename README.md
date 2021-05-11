@@ -8,7 +8,7 @@ UT Spot Autonomy Stack
     ```
     sudo apt install qt5-default libqt5websockets5-dev libgoogle-glog-dev libgflags-dev
     ```
-1. [spot-ros-wrapper](https://github.com/ut-amrl/spot-ros-wrapper)
+1. [Clearpath Spot ROS Interface](https://github.com/clearpathrobotics/spot_ros)
 
 ## Build
 1. Add the repo path to `ROS_PACKAGE_PATH`
@@ -16,7 +16,7 @@ UT Spot Autonomy Stack
 
 ## Usage
 
-1. Replicate `launch/start_all_example.launch` to `launch/start_all.launch`, filling in your Spot robot username, password, and IP address.
+1. Replicate `launch/start_clearpath_spot.launch.example` to `launch/start_clearpath_spot.launch`, filling in your Spot robot username, password, and IP address.
 1. `roslaunch spot_autonomy start_all.launch`
 
 ## Joystick
