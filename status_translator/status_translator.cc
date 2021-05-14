@@ -29,7 +29,7 @@
 #include "gflags/gflags.h"
 #include "glog/logging.h"
 #include "ros/ros.h"
-#include "spot_ros_msgs/RobotState.h"
+#include "spot_msgs/PowerState.h"
 
 #include "amrl_msgs/RobofleetStatus.h"
 #include "amrl_msgs/Localization2DMsg.h"
@@ -41,7 +41,7 @@ using std::string;
 
 using namespace math_util;
 
-DEFINE_string(status_topic, "/robot_state", "ROS topic for spot state messsages");
+DEFINE_string(status_topic, "/spot/status/power_state", "ROS topic for spot state messsages");
 DEFINE_string(localization_topic, "/localization", "ROS topic for amrl localization messsages");
 DEFINE_string(output_topic, "/robofleet_status", "ROS topic for Robofleet status messages");
 DEFINE_double(timeout, 3.0, "Timeout for resetting fields of status message.");
@@ -51,22 +51,37 @@ amrl_msgs::RobofleetStatus status_msg_;
 double last_status_msg = GetMonotonicTime();
 double last_loc_msg = GetMonotonicTime();
 
-void StatusCallback(const spot_ros_msgs::RobotState& msg) {
+void PowerStateCallback(const spot_msgs::PowerState& msg) {
   const bool verbose = FLAGS_v > 0;
   if (verbose) {
-    printf("Recieved a status message\n");
-    // printf("Status:%d Service:%d Lat,Long:%12.8lf, %12.8lf Alt:%7.2lf",
-    //       msg.status.status, msg.status.service,
-    //       msg.latitude, msg.longitude, msg.altitude);
+    printf("Recieved a power state message\n");
   };
 
-  // TODO check status to verify levels are good
-  // TODO do more checks e.g. is localization up, etc.
-  status_msg_.status = "online";
+  status_msg_.is_ok = false;
+  switch (msg.motor_power_state) {
+    case spot_msgs::PowerState::STATE_ON : {
+      status_msg_.status = "power on";
+      status_msg_.is_ok = true;
+    } break;
+    case spot_msgs::PowerState::STATE_POWERING_ON : {
+      status_msg_.status = "powering on";
+      status_msg_.is_ok = true;
+    } break;
+    case spot_msgs::PowerState::STATE_POWERING_OFF : {
+      status_msg_.status = "powering off";
+    } break;
+    case spot_msgs::PowerState::STATE_OFF : {
+      status_msg_.status = "power off";
+    } break;
+    case spot_msgs::PowerState::STATE_ERROR : {
+      status_msg_.status = "Error";
+    } break;
+    default : {
+      status_msg_.status = "Unknown";
+    } break;
+  }
 
-  //TODO: flesh out more
-  status_msg_.is_ok = true;
-  status_msg_.battery_level = msg.battery_states[0].percentage;
+  status_msg_.battery_level = msg.locomotion_charge_percentage / 100.0f;
   last_status_msg = GetMonotonicTime();
 }
 
@@ -82,7 +97,8 @@ int main(int argc, char* argv[]) {
 
   ros::init(argc, argv, "status_translator");
   ros::NodeHandle n;
-  ros::Subscriber status_sub = n.subscribe(FLAGS_status_topic, 1, &StatusCallback);
+  ros::Subscriber power_state_sub = 
+      n.subscribe(FLAGS_status_topic, 1, &PowerStateCallback);
   ros::Subscriber loc_sub = n.subscribe(FLAGS_localization_topic, 1, &LocalizationCallback);
   status_pub_ =  n.advertise<amrl_msgs::RobofleetStatus>(FLAGS_output_topic, 1);
 

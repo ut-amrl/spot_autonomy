@@ -126,16 +126,19 @@ TARGET_LINK_LIBRARIES(pointcloud_to_laserscan
     ${LUA_LIBRARIES}
     ${BUILD_SPECIFIC_LIBRARIES})
 
+INCLUDE_DIRECTORIES(robofleet_client/robofleet_client_lib)
+INCLUDE_DIRECTORIES(robofleet_client/robofleet_client_lib/include)
 ROSBUILD_ADD_EXECUTABLE(robofleet_client
     robofleet_client/src/main.cpp)
 TARGET_SOURCES(robofleet_client PRIVATE
     robofleet_client/src/main.cpp
-    robofleet_client/src/encode.hpp
-    robofleet_client/src/decode.hpp
+    robofleet_client/src/encode_ros.hpp
+    robofleet_client/src/decode_ros.hpp
     robofleet_client/src/WsClient.hpp
     robofleet_client/src/WsServer.hpp
     robofleet_client/src/WebVizConstants.hpp
     robofleet_client/src/RosClientNode.hpp
+    robofleet_client/src/MessageScheduler.hpp
 )
 TARGET_INCLUDE_DIRECTORIES(robofleet_client PRIVATE
     robofleet_client/src

@@ -30,9 +30,9 @@
 #include "geometry_msgs/Twist.h"
 #include "glog/logging.h"
 #include "sensor_msgs/Joy.h"
-#include "spot_ros_srvs/Stand.h"
 #include "std_msgs/Bool.h"
 #include "std_srvs/SetBool.h"
+#include "std_srvs/Trigger.h"
 #include "gflags/gflags.h"
 #include "joystick/joystick.h"
 #include "util/timer.h"
@@ -163,27 +163,18 @@ void SetManualCommand(const vector<int32_t>& buttons,
   const int kRAxis = 0;
   const float kMaxLinearSpeed = 1.0;
   const float kMaxRotationSpeed = math_util::DegToRad(90);
+  std_srvs::Trigger trigger_req;
   manual_cmd_.linear.x = JoystickValue(axes[kXAxis], -kMaxLinearSpeed);
   manual_cmd_.linear.y = JoystickValue(axes[kYAxis], -kMaxLinearSpeed);
   manual_cmd_.angular.z = JoystickValue(axes[kRAxis], -kMaxRotationSpeed);
   if (state_ == JoystickState::MANUAL) {
     if (buttons[kSitBtn]) {
-      std_srvs::SetBool srv;
-      srv.request.data = true;
-      if (!sit_service_.call(srv)) {
+      if (!sit_service_.call(trigger_req)) {
         fprintf(stderr, "Error calling sit service!\n");
       }
       Sleep(0.5);
     } else if (buttons[kStandBtn]) {
-      spot_ros_srvs::Stand srv;
-      srv.request.body_pose.translation.x = 0;
-      srv.request.body_pose.translation.y = 0;
-      srv.request.body_pose.translation.z = 0;
-      srv.request.body_pose.rotation.x = 0;
-      srv.request.body_pose.rotation.y = 0;
-      srv.request.body_pose.rotation.z = 0;
-      srv.request.body_pose.rotation.w = 1;
-      if (!stand_service_.call(srv)) {
+      if (!stand_service_.call(trigger_req)) {
         fprintf(stderr, "Error calling stand service!\n");
       }
       Sleep(0.5);
@@ -227,8 +218,8 @@ int main(int argc, char** argv) {
   ros::Subscriber cmd_subscriber = 
       n.subscribe("navigation/cmd_vel", 10, CommandCallback);
   cmd_publisher_ = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
-  stand_service_ = n.serviceClient<spot_ros_srvs::Stand>("stand_cmd");
-  sit_service_ = n.serviceClient<std_srvs::SetBool>("sit_cmd");
+  stand_service_ = n.serviceClient<std_srvs::Trigger>("spot/stand");
+  sit_service_ = n.serviceClient<std_srvs::Trigger>("spot/sit");
   enable_autonomy_publisher_ = n.advertise<std_msgs::Bool>("autonomy_arbiter/enabled", 1);
   Joystick joystick;
   if (!joystick.Open(FLAGS_idx)) {
