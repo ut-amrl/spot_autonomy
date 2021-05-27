@@ -22,11 +22,13 @@ UT Spot Autonomy Stack
 ## Joystick
 
 * Left bumper: Press and hold for manual control
-* Right number: Press to enable autonomous mode, press any other button to go out of autonomus mode
+* Right bumber: Press to enable autonomous mode, press any other button to go out of autonomus mode
 * Left joystick: Yaw control when in manual mode
 * Right joystick + LB: Translation control
 * Y(Yellow) button + LB: Stand up
 * A(Green) button + LB: Sit down
 * X(Blue) button + LB: Start rosbag record
 * B(Red) button + LB: Stop resbag record
+
+The rosbag record command is defined in `config/joystick.lua`.
 
