@@ -26,6 +26,7 @@
 #include <string>
 #include <vector>
 
+#include "config_reader/config_reader.h"
 #include "ros/ros.h"
 #include "geometry_msgs/Twist.h"
 #include "glog/logging.h"
@@ -43,6 +44,9 @@ DEFINE_uint32(manual_button, 4, "Manual mode button");
 DEFINE_uint32(autonomous_button, 5, "Autonomous mode button");
 DEFINE_double(
     max_cmd_age, 0.1, "Maximum permissible age of autonomous command");
+
+DEFINE_string(config, "config/joystick.lua", "Config file");
+CONFIG_STRING(rosbag_record_cmd, "record_cmd");
 
 using sensor_msgs::Joy;
 using std::string;
@@ -63,6 +67,7 @@ ros::Publisher cmd_publisher_;
 ros::Publisher enable_autonomy_publisher_;
 ros::ServiceClient sit_service_;
 ros::ServiceClient stand_service_;
+bool sitting_ = false;
 
 geometry_msgs::Twist ZeroTwist() {
   geometry_msgs::Twist msg;
@@ -133,6 +138,8 @@ void CommandCallback(const geometry_msgs::Twist& msg) {
 }
 
 void PublishCommand() {
+  // Don't publish drive commands when sitting!
+  if (sitting_) return;
   if (state_ == JoystickState::MANUAL) {
     cmd_publisher_.publish(manual_cmd_);
   } else if (state_ == JoystickState::AUTONOMOUS) {
@@ -171,11 +178,15 @@ void SetManualCommand(const vector<int32_t>& buttons,
     if (buttons[kSitBtn]) {
       if (!sit_service_.call(trigger_req)) {
         fprintf(stderr, "Error calling sit service!\n");
+      } else {
+        sitting_ = true;
       }
       Sleep(0.5);
     } else if (buttons[kStandBtn]) {
       if (!stand_service_.call(trigger_req)) {
         fprintf(stderr, "Error calling stand service!\n");
+      } else {
+        sitting_ = false;
       }
       Sleep(0.5);
     }
@@ -189,7 +200,7 @@ void LoggingControls(const vector<int32_t>& buttons) {
     static bool recording = false;
     if (recording && buttons[1] == 1) {
       recording = false;
-      if (system("killall rosbag") != 0) {
+      if (system("rosnode kill joystick_rosbag_record") != 0) {
         printf("Unable to kill rosbag!\n");
       } else {
         printf("Stopped recording rosbag.\n");
@@ -198,7 +209,7 @@ void LoggingControls(const vector<int32_t>& buttons) {
     } else if (!recording && buttons[2] == 1) {
 
       printf("Starting recording rosbag...\n");
-      if (system("rosbag record -a &") != 0) {
+      if (system(CONFIG_rosbag_record_cmd.c_str()) != 0) {
         printf("Unable to record\n");
       } else {
         printf("Started recording rosbag.\n");
@@ -213,6 +224,8 @@ int main(int argc, char** argv) {
   google::ParseCommandLineFlags(&argc, &argv, false);
   google::InitGoogleLogging(argv[0]);
   ros::init(argc, argv, "joystick");
+  config_reader::ConfigReader reader({FLAGS_config});
+  // printf("%s\n", CONFIG_rosbag_record_cmd.c_str());
   ros::NodeHandle n;
   ros::Publisher publisher = n.advertise<sensor_msgs::Joy>("joystick", 1);
   ros::Subscriber cmd_subscriber = 

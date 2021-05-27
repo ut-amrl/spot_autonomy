@@ -8,7 +8,7 @@
   <node name="joystick" 
       pkg="spot_autonomy"
       type="joystick"
-      args="--v 2" 
+      args="--v 2 --config $(find spot_autonomy)/config/joystick.lua" 
       respawn="true"
       respawn_delay="2" />
 
@@ -29,7 +29,7 @@
   <node name="navigation" 
       pkg="spot_autonomy"
       type="navigation"
-      args="-maps_dir $(find spot_autonomy)/maps -map UT_Campus_With_Stairs -odom_topic odom -laser_topic /velodyne_2dscan_highbeams --max_speed 1.4" 
+      args="-maps_dir $(find spot_autonomy)/maps --robot_config $(find spot_autonomy)/config/navigation.lua" 
       respawn="true"
       respawn_delay="2" />
 
@@ -73,6 +73,13 @@
       pkg="image_transport"
       type="republish"
       args="raw in:=/spot/camera/right/image compressed out:=/spot/camera/right/image"
+      respawn="true"
+      respawn_delay="2" />
+
+  <node name="compress_image_back" 
+      pkg="image_transport"
+      type="republish"
+      args="raw in:=/spot/camera/back/image compressed out:=/spot/camera/back/image"
       respawn="true"
       respawn_delay="2" />
 

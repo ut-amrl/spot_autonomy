@@ -71,6 +71,7 @@ ROSBUILD_ADD_EXECUTABLE(navigation
     graph_navigation/src/visualization/visualization.cc
     graph_navigation/src/vector_map/vector_map.cc)
 TARGET_INCLUDE_DIRECTORIES(navigation PRIVATE
+    graph_navigation/src/third_party
     graph_navigation/src
     amrl_shared_lib
     config_reader/include
@@ -83,9 +84,10 @@ TARGET_LINK_LIBRARIES(navigation gflags roslib roscpp pthread boost_system
      joystick/joystick_driver.cc
      joystick/joystick.cc)
  TARGET_INCLUDE_DIRECTORIES(joystick PRIVATE
-     amrl_shared_lib)
+    config_reader/include
+    amrl_shared_lib)
  TARGET_LINK_LIBRARIES(joystick gflags roslib roscpp pthread boost_system
-     rt glog rosbag amrl_shared_lib
+     rt glog rosbag amrl_shared_lib ${LUA_LIBRARIES}
      ${BUILD_SPECIFIC_LIBRARIES})
 
 ROSBUILD_ADD_EXECUTABLE(status_translator 
