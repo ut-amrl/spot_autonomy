@@ -84,7 +84,7 @@ void SwitchState(const JoystickState& s) {
     "Autonomous"
   };
   const std::string state_str = states[static_cast<int>(s)];
-  if (FLAGS_v > 0) printf("Switch to %s\n", state_str.c_str());
+  printf("Switch to %s\n", state_str.c_str());
   state_ = s;
   Sleep(0.5);
 }

@@ -41,7 +41,7 @@
   <node name="enml" 
       pkg="spot_autonomy"
       type="enml"
-      args="-c $(find spot_autonomy)/config -r enml.lua -m $(find spot_autonomy)/maps" 
+      args="-c $(find spot_autonomy)/config -r enml.lua -m $(find spot_autonomy)/maps -d1" 
       respawn="true"
       respawn_delay="2" />
 
@@ -50,7 +50,8 @@
       type="navigation"
       args="-twist_drive_topic cmd_vel -robot_config $(find spot_autonomy)/graph_navigation/config/$(arg graph_nav_config) -maps_dir $(find spot_autonomy)/maps -map AHG2"
       respawn="true"
-      respawn_delay="2" />
+      respawn_delay="2" 
+      output="screen" />
       <!-- -odom_topic odom -laser_topic /velodyne_2dscan_highbeams --><!--max_speed 1.4 -->
 
   <node name="robofleet_client" 
@@ -67,4 +68,5 @@
       args=""
       respawn="true"
       respawn_delay="2" />
+
 </launch>
