@@ -67,7 +67,7 @@ RobotConfig = {
   
     -- MLE Optimization parameters.
     pose_increment = 1;
-    max_history = 10;
+    max_history = 4;
     max_solver_iterations = 15;
     num_repeat_iterations = 1;
     max_repeat_iterations = 3;

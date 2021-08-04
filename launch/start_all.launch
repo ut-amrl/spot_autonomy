@@ -10,7 +10,8 @@
       type="joystick"
       args="--v 2 --config $(find spot_autonomy)/config/joystick.lua" 
       respawn="true"
-      respawn_delay="2" />
+      respawn_delay="2"
+      output="screen" />
 
   <node name="websocket" 
       pkg="spot_autonomy"
