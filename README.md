@@ -16,7 +16,7 @@ UT Spot Autonomy Stack
 
 ## Usage
 
-1. Replicate `launch/start_clearpath_spot.launch.example` to `launch/start_clearpath_spot.launch`, filling in your Spot robot username, password, and IP address.
+1. **Initial Setup Only:** Replicate `launch/start_clearpath_spot.launch.example` to `launch/start_clearpath_spot.launch`, filling in your Spot robot username, password, and IP address.
 1. `roslaunch spot_autonomy start_all.launch`
 
 ## Joystick
