@@ -17,7 +17,16 @@ UT Spot Autonomy Stack
 ## Usage
 
 1. **Initial Setup Only:** Replicate `launch/start_clearpath_spot.launch.example` to `launch/start_clearpath_spot.launch`, filling in your Spot robot username, password, and IP address.
-1. `roslaunch spot_autonomy start_all.launch`
+2. [Optional, if running under docker]:
+    ```
+    cd /home/amrl-user/ros-docker
+    docker-compose up
+    ```
+    Open an interactive shell to the docker instance:
+    ```
+    docker exec -it ros-docker_app_1 bash
+    ```
+4. `roslaunch spot_autonomy start_all.launch`
 
 ## Joystick
 
