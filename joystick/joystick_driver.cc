@@ -101,10 +101,9 @@ void UpdateState(const vector<int32_t>& buttons) {
     case JoystickState::STOPPED: {
       if (buttons[FLAGS_manual_button] == 1) {
         SwitchState(JoystickState::MANUAL);
-      } else {
-        int num_buttons_pressed = 
-            std::accumulate(buttons.begin(), buttons.end(), 0);
-        if (num_buttons_pressed == 1 && buttons[FLAGS_autonomous_button] == 1) {
+      }
+      else {
+        if (buttons[FLAGS_autonomous_button] == 1) {
           SwitchState(JoystickState::AUTONOMOUS);
         }
       }
@@ -115,17 +114,17 @@ void UpdateState(const vector<int32_t>& buttons) {
       }
     } break;
     case JoystickState::AUTONOMOUS: {
-      for (const int32_t& b : buttons) {
-        if (b != 0) {
-          SwitchState(JoystickState::STOPPED);
-          break;
-        }
+      for (const auto& b : buttons) {
+        if (b == 1) {
+      	  SwitchState(JoystickState::STOPPED);
+	  break;
+	}
       }
     } break;
     default: {
       // Must never happen.
-      fprintf(stderr, 
-              "ERROR: Unknown joystick state %d\n", 
+      fprintf(stderr,
+              "ERROR: Unknown joystick state %d\n",
               static_cast<int>(state_));
       exit(1);
     }
@@ -143,11 +142,11 @@ void PublishCommand() {
   if (state_ == JoystickState::MANUAL) {
     cmd_publisher_.publish(manual_cmd_);
   } else if (state_ == JoystickState::AUTONOMOUS) {
-    const double t = GetMonotonicTime();
-    if (t > t_last_cmd_ + FLAGS_max_cmd_age) {
-      last_cmd_ = ZeroTwist();
-    }
-    cmd_publisher_.publish(last_cmd_);
+   const double t = GetMonotonicTime();
+   if (t > t_last_cmd_ + FLAGS_max_cmd_age) {
+     last_cmd_ = ZeroTwist();
+   }
+  cmd_publisher_.publish(last_cmd_);
   } else {
     cmd_publisher_.publish(ZeroTwist());
   }
@@ -161,14 +160,14 @@ float JoystickValue(float x, float scale) {
   return ((x - math_util::Sign(x) * kDeadZone) / (1.0f - kDeadZone) * scale);
 }
 
-void SetManualCommand(const vector<int32_t>& buttons, 
+void SetManualCommand(const vector<int32_t>& buttons,
                       const vector<float>& axes) {
   const int kSitBtn = 0;
   const int kStandBtn = 3;
   const int kXAxis = 4;
   const int kYAxis = 3;
   const int kRAxis = 0;
-  const float kMaxLinearSpeed = 1.0;
+  const float kMaxLinearSpeed = 1.6;
   const float kMaxRotationSpeed = math_util::DegToRad(90);
   std_srvs::Trigger trigger_req;
   manual_cmd_.linear.x = JoystickValue(axes[kXAxis], -kMaxLinearSpeed);
@@ -206,8 +205,7 @@ void LoggingControls(const vector<int32_t>& buttons) {
         printf("Stopped recording rosbag.\n");
       }
       Sleep(0.5);
-    } else if (!recording && buttons[2] == 1) {
-
+    } else if (!recording && buttons[3] == 1) {
       printf("Starting recording rosbag...\n");
       if (system(CONFIG_rosbag_record_cmd.c_str()) != 0) {
         printf("Unable to record\n");
@@ -218,7 +216,7 @@ void LoggingControls(const vector<int32_t>& buttons) {
       Sleep(0.5);
     }
   }
-} 
+}
 
 int main(int argc, char** argv) {
   google::ParseCommandLineFlags(&argc, &argv, false);
@@ -228,7 +226,7 @@ int main(int argc, char** argv) {
   // printf("%s\n", CONFIG_rosbag_record_cmd.c_str());
   ros::NodeHandle n;
   ros::Publisher publisher = n.advertise<sensor_msgs::Joy>("joystick", 1);
-  ros::Subscriber cmd_subscriber = 
+  ros::Subscriber cmd_subscriber =
       n.subscribe("navigation/cmd_vel", 10, CommandCallback);
   cmd_publisher_ = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
   stand_service_ = n.serviceClient<std_srvs::Trigger>("spot/stand");
