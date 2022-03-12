@@ -146,6 +146,12 @@ static void configure_msg_types(RosClientNode& cn) {
                   .rate_limit_hz(10)
                   .priority(1));
 
+  cn.configure(SendLocalTopic<sensor_msgs::CompressedImage>()
+                  .from("/spot/camera/back/image/compressed")
+                  .to(webviz_constants::compressed_image_prefix + "back")
+                  .rate_limit_hz(10)
+		  .priority(1));
+	
   cn.configure(SendLocalTopic<amrl_msgs::VisualizationMsg>()
                    .from("/visualization")
                    .to(webviz_constants::visualization_topic)

@@ -6,7 +6,7 @@ build_type=Release
 
 .SILENT:
 
-all: build build/CMakeLists.txt.copy
+all: build build/CMakeLists.txt.copy graph_navigation/bin/navigation
 	$(info Build_type is [${build_type}])
 	$(info Build_mode is [${build_mode}])
 	$(MAKE) --no-print-directory -C build
@@ -14,6 +14,7 @@ all: build build/CMakeLists.txt.copy
 
 clean:
 	rm -rf build bin lib
+	cd graph_navigation && rm -rf build bin lib
 
 build/CMakeLists.txt.copy: build CMakeLists.txt Makefile
 	cd build && cmake -DCMAKE_BUILD_TYPE=$(build_type) ..
@@ -22,6 +23,5 @@ build/CMakeLists.txt.copy: build CMakeLists.txt Makefile
 build:
 	mkdir -p build
 
-purge: clean cleanup_cache
-	rm -rf src/ut_automata
-
+graph_navigation/bin/navigation:
+	cd graph_navigation && $(MAKE)

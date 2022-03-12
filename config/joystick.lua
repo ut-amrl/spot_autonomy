@@ -1,4 +1,8 @@
 record_cmd = "rosbag record /status /velodyne_points /scan /imu/data /jackal_velocity_controller/odom /gps/fix /gps/vel /imu/data_raw /tf /localization /move_base_simple/goal /navigation/cmd_vel /set_nav_target /set_pose"..
+    " /image_raw/compressed "..
+    " /joint_states"..
+    " /joystick"..
+    " /odom"..
     " /spot/camera/frontright/image/compressed "..
     " /spot/camera/frontleft/image/compressed "..
     " /spot/camera/right/image/compressed "..
