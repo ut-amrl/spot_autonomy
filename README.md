@@ -8,16 +8,32 @@ UT Spot Autonomy Stack
     ```
     sudo apt install qt5-default libqt5websockets5-dev libgoogle-glog-dev libgflags-dev
     ```
-1. [Clearpath Spot ROS Interface](https://github.com/clearpathrobotics/spot_ros)
+1. [AMRL Fork of Clearpath Spot ROS Interface](https://github.com/ut-amrl/spot_ros), forked from https://github.com/clearpathrobotics/spot_ros
 
 ## Build
-1. Add the repo path to `ROS_PACKAGE_PATH`
+1. Clone and add repo paths to `ROS_PACKAGE_PATH`
+    1.  [amrl_msgs](https://github.com/ut-amrl/amrl_msgs)
+    1.  spot_autonomy 
 1. Run `make`
+1. Add commands to do step 1. to bashrc (otherwise need to repeat this step for launching spot_autonomy in every new shell session).
+
+## External Hardware
+* See https://github.com/ut-amrl/amrl-documentation/blob/master/robots/spot.md
+
 
 ## Usage
 
-1. Replicate `launch/start_clearpath_spot.launch.example` to `launch/start_clearpath_spot.launch`, filling in your Spot robot username, password, and IP address.
-1. `roslaunch spot_autonomy start_all.launch`
+1. **Initial Setup Only:** Replicate `launch/start_clearpath_spot.launch.example` to `launch/start_clearpath_spot.launch`, filling in your Spot robot username, password, and IP address.
+2. [Optional, if running under docker]:
+    ```
+    cd /home/amrl-user/ros-docker
+    docker-compose up
+    ```
+    Open an interactive shell to the docker instance (run any ros/spot modules here):
+    ```
+    docker exec -it ros-docker_app_1 bash
+    ```
+4. `roslaunch spot_autonomy start_all.launch`
 
 ## Joystick
 

@@ -69,8 +69,8 @@ float max_sq_range_ = FLT_MAX;
 string laser_topic_ = "scan";
 string pointcloud_topic_ = "pointcloud";
 
-static const Eigen::Affine3f frame_tf_ = 
-      Eigen::Translation3f(0, 0, 0.86) * 
+static const Eigen::Affine3f frame_tf_ =
+      Eigen::Translation3f(0, 0, 0.85) *
       Eigen::AngleAxisf(0.0, Vector3f::UnitX());
 const std::string target_frame_("base_link");
 
@@ -90,7 +90,7 @@ void PointcloudCallback(const sensor_msgs::PointCloud2& msg) {
     r = FLT_MAX;
   }
   // Iterate through pointcloud
-  for (sensor_msgs::PointCloud2ConstIterator<float> 
+  for (sensor_msgs::PointCloud2ConstIterator<float>
       iter_x(msg, "x"),
       iter_y(msg, "y"), iter_z(msg, "z");
       iter_x != iter_x.end(); ++iter_x, ++iter_y, ++iter_z) {
@@ -136,12 +136,12 @@ void LoadConfig() {
   CONFIG_FLOAT(num_ranges, "pointcloud_to_laser.num_ranges");
   CONFIG_STRING(pointcloud_topic_, "pointcloud_to_laser.pointcloud_topic");
   CONFIG_STRING(laser_topic_, "pointcloud_to_laser.laser_topic");
-  
+
   config_reader::ConfigReader reader({FLAGS_config});
 
   laser_msg_.angle_min = CONFIG_angle_min;
   laser_msg_.angle_max = CONFIG_angle_max;
-  laser_msg_.angle_increment = 
+  laser_msg_.angle_increment =
       (CONFIG_angle_max - CONFIG_angle_min) / CONFIG_num_ranges;
   laser_msg_.range_min = CONFIG_range_min;
   laser_msg_.range_max = CONFIG_range_max;
