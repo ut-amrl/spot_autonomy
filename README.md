@@ -8,7 +8,7 @@ UT Spot Autonomy Stack
     ```
     sudo apt install qt5-default libqt5websockets5-dev libgoogle-glog-dev libgflags-dev
     ```
-1. [Clearpath Spot ROS Interface](https://github.com/clearpathrobotics/spot_ros)
+1. [AMRL Fork of Clearpath Spot ROS Interface](https://github.com/ut-amrl/spot_ros), forked from https://github.com/clearpathrobotics/spot_ros
 
 ## Build
 1. Clone and add repo paths to `ROS_PACKAGE_PATH`
