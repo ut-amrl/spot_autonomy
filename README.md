@@ -37,14 +37,15 @@ UT Spot Autonomy Stack
 
 ## Joystick
 
+![PS4 Dualshock Controller](https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/DualShock_4.jpg/271px-DualShock_4.jpg)
+
 * Left bumper: Press and hold for manual control
-* Right bumber: Press to enable autonomous mode, press any other button to go out of autonomus mode
-* Left joystick: Yaw control when in manual mode
+* Right bumper: Press to enable autonomous mode, press any other button to go out of autonomous mode
+* Left joystick + LB: Yaw control
 * Right joystick + LB: Translation control
-* Y(Yellow) button + LB: Stand up
-* A(Green) button + LB: Sit down
-* X(Blue) button + LB: Start rosbag record
-* B(Red) button + LB: Stop resbag record
+* X button + LB: Stand up
+* Square button + LB: Sit down
+* Triangle button + LB: Start rosbag record
+* Circle button + LB: Stop rosbag record
 
 The rosbag record command is defined in `config/joystick.lua`.
-
