@@ -41,7 +41,7 @@
 DECLARE_int32(v);
 DEFINE_int32(idx, 0, "Joystick index");
 DEFINE_uint32(manual_button, 4, "Manual mode button");
-DEFINE_uint32(autonomous_button, 5, "Autonomous mode button");
+DEFINE_uint32(autonomous_button, 2, "Autonomous mode button");
 DEFINE_double(
     max_cmd_age, 0.1, "Maximum permissible age of autonomous command");
 
@@ -101,9 +101,10 @@ void UpdateState(const vector<int32_t>& buttons) {
     case JoystickState::STOPPED: {
       if (buttons[FLAGS_manual_button] == 1) {
         SwitchState(JoystickState::MANUAL);
-      }
-      else {
-        if (buttons[FLAGS_autonomous_button] == 1) {
+      } else {
+        int num_buttons_pressed =
+            std::accumulate(buttons.begin(), buttons.end(), 0);
+        if (num_buttons_pressed == 1 && buttons[FLAGS_autonomous_button] == 1) {
           SwitchState(JoystickState::AUTONOMOUS);
         }
       }
@@ -114,11 +115,11 @@ void UpdateState(const vector<int32_t>& buttons) {
       }
     } break;
     case JoystickState::AUTONOMOUS: {
-      for (const auto& b : buttons) {
-        if (b == 1) {
-      	  SwitchState(JoystickState::STOPPED);
-	  break;
-	}
+      for (const int32_t& b : buttons) {
+        if (b != 0) {
+          SwitchState(JoystickState::STOPPED);
+          break;
+        }
       }
     } break;
     default: {
@@ -142,11 +143,11 @@ void PublishCommand() {
   if (state_ == JoystickState::MANUAL) {
     cmd_publisher_.publish(manual_cmd_);
   } else if (state_ == JoystickState::AUTONOMOUS) {
-   const double t = GetMonotonicTime();
-   if (t > t_last_cmd_ + FLAGS_max_cmd_age) {
-     last_cmd_ = ZeroTwist();
-   }
-  cmd_publisher_.publish(last_cmd_);
+    const double t = GetMonotonicTime();
+    if (t > t_last_cmd_ + FLAGS_max_cmd_age) {
+      last_cmd_ = ZeroTwist();
+    }
+    cmd_publisher_.publish(last_cmd_);
   } else {
     cmd_publisher_.publish(ZeroTwist());
   }
@@ -162,8 +163,8 @@ float JoystickValue(float x, float scale) {
 
 void SetManualCommand(const vector<int32_t>& buttons,
                       const vector<float>& axes) {
-  const int kSitBtn = 0;
-  const int kStandBtn = 3;
+  const int kSitBtn = 3;
+  const int kStandBtn = 0;
   const int kXAxis = 4;
   const int kYAxis = 3;
   const int kRAxis = 0;
@@ -194,10 +195,12 @@ void SetManualCommand(const vector<int32_t>& buttons,
 
 void LoggingControls(const vector<int32_t>& buttons) {
   // See if recording should start.
-  if (buttons.size() >=4 &&
-      buttons[4] == 1) {
+  const int kLeftBumper = 4;
+  const int kStartBtn = 2;
+  const int kStopBtn = 1;
+  if (buttons.size() >= kLeftBumper && buttons[kLeftBumper] == 1) {
     static bool recording = false;
-    if (recording && buttons[1] == 1) {
+    if (recording && buttons[kStopBtn] == 1) {
       recording = false;
       if (system("rosnode kill joystick_rosbag_record") != 0) {
         printf("Unable to kill rosbag!\n");
@@ -205,7 +208,8 @@ void LoggingControls(const vector<int32_t>& buttons) {
         printf("Stopped recording rosbag.\n");
       }
       Sleep(0.5);
-    } else if (!recording && buttons[3] == 1) {
+    } else if (!recording && buttons[kStartBtn] == 1) {
+
       printf("Starting recording rosbag...\n");
       if (system(CONFIG_rosbag_record_cmd.c_str()) != 0) {
         printf("Unable to record\n");
