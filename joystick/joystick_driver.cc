@@ -41,7 +41,7 @@
 DECLARE_int32(v);
 DEFINE_int32(idx, 0, "Joystick index");
 DEFINE_uint32(manual_button, 4, "Manual mode button");
-DEFINE_uint32(autonomous_button, 2, "Autonomous mode button");
+DEFINE_uint32(autonomous_button, 5, "Autonomous mode button");
 DEFINE_double(
     max_cmd_age, 0.1, "Maximum permissible age of autonomous command");
 
