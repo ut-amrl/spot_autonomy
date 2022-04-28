@@ -14,6 +14,8 @@ record_cmd = "rosbag record /status /velodyne_points /scan /imu/data /jackal_vel
     " /spot/camera/left/camera_info"..
     " /spot/camera/back/camera_info __name:=joystick_rosbag_record&";
 
+max_linear_speed = 1.6;
+
 Ps4Mapping = {
     manual_button = 4;
     autonomous_button = 5;

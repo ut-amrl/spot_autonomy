@@ -69,6 +69,7 @@ CONFIG_INT(record_start_button, "Mapping.record_start_button");
 CONFIG_INT(record_stop_button, "Mapping.record_stop_button");
 
 CONFIG_STRING(rosbag_record_cmd, "record_cmd");
+CONFIG_FLOAT(max_linear_speed, "max_linear_speed");
 
 using sensor_msgs::Joy;
 using std::string;
@@ -210,7 +211,7 @@ float JoystickValue(float x, float scale) {
 
 void SetManualCommand(const vector<int32_t>& buttons,
                       const vector<float>& axes) {
-  const float kMaxLinearSpeed = 1.6;
+  const float kMaxLinearSpeed = CONFIG_max_linear_speed;
   const float kMaxRotationSpeed = math_util::DegToRad(90);
   std_srvs::Trigger trigger_req;
   manual_cmd_.linear.x = JoystickValue(axes[CONFIG_x_axis], CONFIG_axis_scale * kMaxLinearSpeed);
