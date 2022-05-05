@@ -12,7 +12,17 @@ record_cmd = "rosbag record /status /velodyne_points /scan /imu/data /jackal_vel
     " /spot/camera/frontleft/camera_info"..
     " /spot/camera/right/camera_info"..
     " /spot/camera/left/camera_info"..
-    " /spot/camera/back/camera_info __name:=joystick_rosbag_record&";
+    " /spot/camera/back/camera_info"..
+    " /spot/odometry/twist"..
+    " /spot/status/battery_states"..
+    " /spot/status/feet"..
+    " /tf"..
+    " /tf_static"..
+    " __name:=joystick_rosbag_record&";
+
+record_start_feedback_cmd = "paplay ~/Music/sosumi.wav &";
+record_stop_feedback_cmd = "paplay ~/Music/temple.wav &";
+max_linear_speed = 1.6;
 
 Ps4Mapping = {
     manual_button = 4;
