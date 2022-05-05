@@ -11,6 +11,8 @@ record_cmd = "rosbag record"..
     " /tf_static"..
     " __name:=joystick_rosbag_record&";
 
+record_start_feedback_cmd = "paplay ~/Music/sosumi.wav &";
+record_stop_feedback_cmd = "paplay ~/Music/temple.wav &";
 max_linear_speed = 1.6;
 
 Ps4Mapping = {

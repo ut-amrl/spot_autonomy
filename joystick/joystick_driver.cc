@@ -69,6 +69,8 @@ CONFIG_INT(record_start_button, "Mapping.record_start_button");
 CONFIG_INT(record_stop_button, "Mapping.record_stop_button");
 
 CONFIG_STRING(rosbag_record_cmd, "record_cmd");
+CONFIG_STRING(record_start_feedback_cmd, "record_start_feedback_cmd");
+CONFIG_STRING(record_stop_feedback_cmd, "record_stop_feedback_cmd");
 CONFIG_FLOAT(max_linear_speed, "max_linear_speed");
 
 using sensor_msgs::Joy;
@@ -263,6 +265,7 @@ void LoggingControls(const vector<int32_t>& buttons) {
         printf("Unable to kill rosbag!\n");
       } else {
         printf("Stopped recording rosbag.\n");
+        std::ignore = std::system(CONFIG_record_stop_feedback_cmd.c_str());
       }
       Sleep(0.5);
     } else if (!recording && buttons[CONFIG_record_start_button] == 1) {
@@ -272,6 +275,7 @@ void LoggingControls(const vector<int32_t>& buttons) {
       } else {
         printf("Started recording rosbag.\n");
         recording = true;
+        std::ignore = std::system(CONFIG_record_start_feedback_cmd.c_str());
       }
       Sleep(0.5);
     }
