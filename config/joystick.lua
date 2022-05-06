@@ -1,5 +1,6 @@
 record_cmd = "rosbag record"..
     " /camera/rgb/image_raw/compressed"..
+    " /kinect_imu"..
     " /joint_states"..
     " /camera/rgb/image_raw/compressed"..
     " /joint_states"..
