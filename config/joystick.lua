@@ -2,14 +2,13 @@ record_cmd = "rosbag record"..
     " /camera/rgb/image_raw/compressed"..
     " /kinect_imu"..
     " /joint_states"..
-    " /camera/rgb/image_raw/compressed"..
-    " /joint_states"..
     " /odom"..
     " /spot/odometry/twist"..
     " /spot/status/battery_states"..
     " /spot/status/feet"..
     " /tf"..
     " /tf_static"..
+    " /velodyne_points"..
     " __name:=joystick_rosbag_record&";
 
 record_start_feedback_cmd = "paplay ~/Music/sosumi.wav &";
