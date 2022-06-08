@@ -1,0 +1,15 @@
+<launch>
+  <!-- Start Velodyne, and 3D to 2D conversions -->
+  <include file="$(find spot_autonomy)/launch/velodyne.launch" />
+
+  <!-- <include file="$(find spot_autonomy)/launch/start_spot_interface.launch" />   -->
+  <include file="$(find spot_autonomy)/launch/start_clearpath_spot.launch" />
+
+  <node name="joystick"
+      pkg="spot_autonomy"
+      type="joystick"
+      args="--v 2 --config $(find spot_autonomy)/config/joystick.lua"
+      respawn="false"
+      respawn_delay="2"
+      output="screen" />
+</launch>
