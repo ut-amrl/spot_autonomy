@@ -49,13 +49,6 @@
       respawn="true"
       respawn_delay="2" />
 
-  <node name="compress_image_kinect"
-      pkg="image_transport"
-      type="republish"
-      args="raw in:=/camera/rgb/image_raw compressed out:=/camera/rgb/image_raw"
-      respawn="true"
-      respawn_delay="2" />
-
   <node name="compress_image_left"
       pkg="image_transport"
       type="republish"
