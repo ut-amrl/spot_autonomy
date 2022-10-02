@@ -136,6 +136,11 @@ static void configure_msg_types(RosClientNode& cn) {
                   .rate_limit_hz(10)
                   .priority(1));
   cn.configure(SendLocalTopic<sensor_msgs::CompressedImage>()
+                  .from("/vis_image")
+                  .to(webviz_constants::compressed_image_prefix + "terrain_cost")
+                  .rate_limit_hz(10)
+                  .priority(1));
+  cn.configure(SendLocalTopic<sensor_msgs::CompressedImage>()
                   .from("/spot/camera/frontleft/image/compressed")
                   .to(webviz_constants::compressed_image_prefix + "left")
                   .rate_limit_hz(10)
