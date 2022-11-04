@@ -40,12 +40,23 @@
 
 DECLARE_int32(v);
 DEFINE_int32(idx, 0, "Joystick index");
-DEFINE_uint32(manual_button, 4, "Manual mode button");
-DEFINE_uint32(autonomous_button, 5, "Autonomous mode button");
 DEFINE_double(
     max_cmd_age, 0.1, "Maximum permissible age of autonomous command");
 
 DEFINE_string(config, "config/joystick.lua", "Config file");
+
+CONFIG_INT(manual_button, "Mapping.manual_button");
+CONFIG_INT(autonomous_button, "Mapping.autonomous_button");
+CONFIG_INT(sit_button, "Mapping.sit_button");
+CONFIG_INT(stand_button, "Mapping.stand_button");
+CONFIG_INT(x_axis, "Mapping.x_axis");
+CONFIG_INT(y_axis, "Mapping.y_axis");
+CONFIG_INT(r_axis, "Mapping.r_axis");
+
+CONFIG_INT(left_bumper, "Mapping.left_bumper");
+CONFIG_INT(record_start_button, "Mapping.record_start_button");
+CONFIG_INT(record_stop_button, "Mapping.record_stop_button");
+
 CONFIG_STRING(rosbag_record_cmd, "record_cmd");
 
 using sensor_msgs::Joy;
@@ -95,22 +106,22 @@ void SwitchState(const JoystickState& s) {
 }
 
 void UpdateState(const vector<int32_t>& buttons) {
-  CHECK_GT(buttons.size(), FLAGS_manual_button);
-  CHECK_GT(buttons.size(), FLAGS_autonomous_button);
+  CHECK_GT(buttons.size(), CONFIG_manual_button);
+  CHECK_GT(buttons.size(), CONFIG_autonomous_button);
   switch (state_) {
     case JoystickState::STOPPED: {
-      if (buttons[FLAGS_manual_button] == 1) {
+      if (buttons[CONFIG_manual_button] == 1) {
         SwitchState(JoystickState::MANUAL);
       } else {
         int num_buttons_pressed =
             std::accumulate(buttons.begin(), buttons.end(), 0);
-        if (num_buttons_pressed == 1 && buttons[FLAGS_autonomous_button] == 1) {
+        if (num_buttons_pressed == 1 && buttons[CONFIG_autonomous_button] == 1) {
           SwitchState(JoystickState::AUTONOMOUS);
         }
       }
     } break;
     case JoystickState::MANUAL: {
-      if (buttons[FLAGS_manual_button] == 0) {
+      if (buttons[CONFIG_manual_button] == 0) {
         SwitchState(JoystickState::STOPPED);
       }
     } break;
@@ -163,26 +174,21 @@ float JoystickValue(float x, float scale) {
 
 void SetManualCommand(const vector<int32_t>& buttons,
                       const vector<float>& axes) {
-  const int kSitBtn = 3;
-  const int kStandBtn = 0;
-  const int kXAxis = 4;
-  const int kYAxis = 3;
-  const int kRAxis = 0;
   const float kMaxLinearSpeed = 1.6;
   const float kMaxRotationSpeed = math_util::DegToRad(90);
   std_srvs::Trigger trigger_req;
-  manual_cmd_.linear.x = JoystickValue(axes[kXAxis], -kMaxLinearSpeed);
-  manual_cmd_.linear.y = JoystickValue(axes[kYAxis], -kMaxLinearSpeed);
-  manual_cmd_.angular.z = JoystickValue(axes[kRAxis], -kMaxRotationSpeed);
+  manual_cmd_.linear.x = JoystickValue(axes[CONFIG_x_axis], -kMaxLinearSpeed);
+  manual_cmd_.linear.y = JoystickValue(axes[CONFIG_y_axis], -kMaxLinearSpeed);
+  manual_cmd_.angular.z = JoystickValue(axes[CONFIG_r_axis], -kMaxRotationSpeed);
   if (state_ == JoystickState::MANUAL) {
-    if (buttons[kSitBtn]) {
+    if (buttons[CONFIG_sit_button]) {
       if (!sit_service_.call(trigger_req)) {
         fprintf(stderr, "Error calling sit service!\n");
       } else {
         sitting_ = true;
       }
       Sleep(0.5);
-    } else if (buttons[kStandBtn]) {
+    } else if (buttons[CONFIG_stand_button]) {
       if (!stand_service_.call(trigger_req)) {
         fprintf(stderr, "Error calling stand service!\n");
       } else {
@@ -195,12 +201,9 @@ void SetManualCommand(const vector<int32_t>& buttons,
 
 void LoggingControls(const vector<int32_t>& buttons) {
   // See if recording should start.
-  const int kLeftBumper = 4;
-  const int kStartBtn = 2;
-  const int kStopBtn = 1;
-  if (buttons.size() >= kLeftBumper && buttons[kLeftBumper] == 1) {
+  if ((int) buttons.size() >= CONFIG_left_bumper && buttons[CONFIG_left_bumper] == 1) {
     static bool recording = false;
-    if (recording && buttons[kStopBtn] == 1) {
+    if (recording && buttons[CONFIG_record_stop_button] == 1) {
       recording = false;
       if (system("rosnode kill joystick_rosbag_record") != 0) {
         printf("Unable to kill rosbag!\n");
@@ -208,8 +211,7 @@ void LoggingControls(const vector<int32_t>& buttons) {
         printf("Stopped recording rosbag.\n");
       }
       Sleep(0.5);
-    } else if (!recording && buttons[kStartBtn] == 1) {
-
+    } else if (!recording && buttons[CONFIG_record_start_button] == 1) {
       printf("Starting recording rosbag...\n");
       if (system(CONFIG_rosbag_record_cmd.c_str()) != 0) {
         printf("Unable to record\n");
@@ -277,4 +279,3 @@ int main(int argc, char** argv) {
   joystick.Close();
   return 0;
 }
-
