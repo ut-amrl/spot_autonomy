@@ -47,12 +47,18 @@ DEFINE_double(
 
 DEFINE_string(config, "config/joystick.lua", "Config file");
 
+// Non-negative values indicate whether the buttons XOR axis should be used.
+// Buttons take precedence.
 CONFIG_INT(manual_button, "Mapping.manual_button");
 CONFIG_INT(autonomous_button, "Mapping.autonomous_button");
 CONFIG_INT(manual_autonomous_axis, "Mapping.manual_autonomous_axis");
+
+// Non-negative values indicate whether the buttons XOR axis should be used.
+// Buttons take precedence.
 CONFIG_INT(sit_button, "Mapping.sit_button");
 CONFIG_INT(stand_button, "Mapping.stand_button");
 CONFIG_INT(sit_stand_axis, "Mapping.sit_stand_axis");
+
 CONFIG_INT(x_axis, "Mapping.x_axis");
 CONFIG_INT(y_axis, "Mapping.y_axis");
 CONFIG_INT(r_axis, "Mapping.r_axis");
