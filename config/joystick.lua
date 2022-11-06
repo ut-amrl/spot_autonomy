@@ -34,19 +34,44 @@ Ps4Mapping = {
 };
 
 SpektrumDxsMapping = {
--- Left button: button 0, also turns axis 5 from positive to negative
--- "A" switch: axis 4, 0->positive, 1->0, 2->negative
--- "D" switch: axis 6, 0->positive, 1->0, 2->negative and turns button 1 on
--- Left joystick LR: axis 0, left->positive, right->negative
--- Left joystick UpDn: axis 1, up->positive, down->negative; only active if "H" switch=0
--- "H" switch: 0->enables axis 1
--- "F" switch: 1->makes axes 0,2,3 magnitude smaller?
--- Right joystick LR: axis 2: left->positive, right->negative
--- Right joystick UpDn: axis 3: up->positive, down->negative
+--[[
+Left Side:
+    A button: button#0, also turns axis#5 from positive to negative
+        axis#5 does not appear to map to anything else
+    B switch: axis#4
+        0 -> positive value
+        1 -> zero value
+        2 -> negative value
+    D switch: axis#6
+        0 -> positive value
+        1 -> zero value
+        2 -> negative value, also toggles button#1
+    Left Joystick
+        Left-Right: axis#0
+            left -> positive
+            right -> negative
+        Up-Down: axis#1, only active if the H switch is set to 0
+            up -> positive
+            down -> negative
 
--- when the adjustment is approximately equal the sound feedback is more of a
--- high-pitch chirp than a beep
+Right Side:
+    H switch: enable/disable axis#1 joystick
+        0 -> enable
+        1 -> disable, arbitrary negative value reported
+    F switch: reduce joystick values
+        0 -> full range (-23638 to +23637 at neutral zero point)
+        1 -> reduced range (about 70%)
+    Right Joystick:
+        Left-Right: axis #2
+            left -> positive
+            right -> negative
+        Up-Down: axis#3
+            up -> positive
+            down -> negative
 
+Four Trim Sliders: adjust zero point of joysticks
+    Higher-pitch chirp at neutral zero point.
+--]]
     manual_button = -1;
     autonomous_button = -1;
     manual_autonomous_axis = 6;
