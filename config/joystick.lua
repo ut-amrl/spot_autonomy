@@ -54,12 +54,11 @@ SpektrumDxsMapping = {
     sit_button = -1;
     stand_button = -1;
     sit_stand_axis = 4;
-    axis_scale = 32768 / 23638;
 
     x_axis = 3;
     y_axis = 2;
     r_axis = 0;
-    xyr_axes_inverted = false;
+    axis_scale = 32768 / 23638;
 
     left_bumper = 0;
     record_start_button = 0;
