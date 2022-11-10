@@ -1,0 +1,63 @@
+<launch>
+  <!-- Start Velodyne, and 3D to 2D conversions -->
+  <include file="$(find spot_autonomy)/launch/velodyne.launch" />
+
+  <!-- <include file="$(find spot_autonomy)/launch/start_spot_interface.launch" />   -->
+  <include file="$(find spot_autonomy)/launch/start_clearpath_spot.launch" />
+
+  <!-- <include file="$(find vectornav)/launch/vectornav.launch" /> -->
+
+    <node name="depth_to_lidar"
+        pkg="k4a_ros"
+        type="depth_to_lidar"
+        args="-config_file $(find k4a_ros)/config/kinect.lua -rgb -imu -fps 15 -resolution 1536"
+        respawn="false"
+        output="screen"
+    />
+
+    <node name="bev_node"
+        pkg="local_rgb_map"
+        type="bev_node"
+        args="_image_transport:=compressed -config $(find local_rgb_map)/config/bev_node.lua"
+        respawn="false"
+        output="screen"
+    />
+    
+  <node name="joystick"
+      pkg="spot_autonomy"
+      type="joystick"
+      args="--v 2 --config $(find spot_autonomy)/config/joystick.lua"
+      respawn="false"
+      respawn_delay="2"
+      output="screen" />
+
+  <node name="websocket"
+      pkg="spot_autonomy"
+      type="websocket"
+      args="scan:=velodyne_2dscan_highbeams"
+      respawn="true"
+      respawn_delay="2" />
+
+  <node name="enml"
+      pkg="spot_autonomy"
+      type="enml"
+      args="-d0 -c $(find spot_autonomy)/config -r enml.lua -m $(find spot_autonomy)/maps"
+      respawn="true"
+      respawn_delay="2" />
+
+  <node name="robofleet_client"
+      pkg="spot_autonomy"
+      type="robofleet_client"
+      args=""
+      ns="spot"
+      respawn="true"
+      respawn_delay="2" />
+
+  <node name="status_translator"
+      pkg="spot_autonomy"
+      type="status_translator"
+      args=""
+      respawn="true"
+      respawn_delay="2" />
+
+</launch>
