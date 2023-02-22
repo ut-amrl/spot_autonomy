@@ -214,7 +214,9 @@ void SetManualCommand(const vector<int32_t>& buttons,
   const float kMaxRotationSpeed = math_util::DegToRad(90);
   std_srvs::Trigger trigger_req;
   manual_cmd_.linear.x = JoystickValue(axes[CONFIG_x_axis], CONFIG_axis_scale * kMaxLinearSpeed);
-  manual_cmd_.linear.y = JoystickValue(axes[CONFIG_y_axis], CONFIG_axis_scale * kMaxLinearSpeed);
+  // The connection point of the y axis on the controller broke and it returns unstable values.
+  // Turn off y-velocity until it is fixed.
+  manual_cmd_.linear.y = JoystickValue(axes[CONFIG_y_axis], 0.0f * CONFIG_axis_scale * kMaxLinearSpeed);
   manual_cmd_.angular.z = JoystickValue(axes[CONFIG_r_axis], CONFIG_axis_scale * kMaxRotationSpeed);
 
   if (state_ == JoystickState::MANUAL) {
