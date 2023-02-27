@@ -19,33 +19,55 @@
 
 // Joystick Driver main file
 
-#include <stdlib.h>
 #include <stdint.h>
+#include <stdlib.h>
+
 #include <iostream>
 #include <numeric>
 #include <string>
 #include <vector>
 
 #include "config_reader/config_reader.h"
-#include "ros/ros.h"
 #include "geometry_msgs/Twist.h"
+#include "gflags/gflags.h"
 #include "glog/logging.h"
+#include "joystick/joystick.h"
+#include "math/math_util.h"
+#include "ros/ros.h"
 #include "sensor_msgs/Joy.h"
 #include "std_msgs/Bool.h"
 #include "std_srvs/SetBool.h"
 #include "std_srvs/Trigger.h"
-#include "gflags/gflags.h"
-#include "joystick/joystick.h"
 #include "util/timer.h"
 
 DECLARE_int32(v);
 DEFINE_int32(idx, 0, "Joystick index");
-DEFINE_uint32(manual_button, 4, "Manual mode button");
-DEFINE_uint32(autonomous_button, 2, "Autonomous mode button");
 DEFINE_double(
     max_cmd_age, 0.1, "Maximum permissible age of autonomous command");
 
 DEFINE_string(config, "config/joystick.lua", "Config file");
+
+// Non-negative values indicate whether the buttons XOR axis should be used.
+// Buttons take precedence.
+CONFIG_INT(manual_button, "Mapping.manual_button");
+CONFIG_INT(autonomous_button, "Mapping.autonomous_button");
+CONFIG_INT(manual_autonomous_axis, "Mapping.manual_autonomous_axis");
+
+// Non-negative values indicate whether the buttons XOR axis should be used.
+// Buttons take precedence.
+CONFIG_INT(sit_button, "Mapping.sit_button");
+CONFIG_INT(stand_button, "Mapping.stand_button");
+CONFIG_INT(sit_stand_axis, "Mapping.sit_stand_axis");
+
+CONFIG_INT(x_axis, "Mapping.x_axis");
+CONFIG_INT(y_axis, "Mapping.y_axis");
+CONFIG_INT(r_axis, "Mapping.r_axis");
+CONFIG_FLOAT(axis_scale, "Mapping.axis_scale");
+
+CONFIG_INT(left_bumper, "Mapping.left_bumper");
+CONFIG_INT(record_start_button, "Mapping.record_start_button");
+CONFIG_INT(record_stop_button, "Mapping.record_stop_button");
+
 CONFIG_STRING(rosbag_record_cmd, "record_cmd");
 
 using sensor_msgs::Joy;
@@ -94,31 +116,58 @@ void SwitchState(const JoystickState& s) {
   Sleep(0.5);
 }
 
-void UpdateState(const vector<int32_t>& buttons) {
-  CHECK_GT(buttons.size(), FLAGS_manual_button);
-  CHECK_GT(buttons.size(), FLAGS_autonomous_button);
+void UpdateState(const vector<int32_t>& buttons, const vector<float>& axes) {
+  const bool button_mode = (CONFIG_manual_button >= 0 && CONFIG_autonomous_button >= 0);
+  const bool axis_mode = (CONFIG_manual_autonomous_axis >= 0);
+  CHECK(button_mode || axis_mode);
+
+  if (button_mode) {
+    CHECK_GT(buttons.size(), CONFIG_manual_button);
+    CHECK_GT(buttons.size(), CONFIG_autonomous_button);
+  }
+
   switch (state_) {
     case JoystickState::STOPPED: {
-      if (buttons[FLAGS_manual_button] == 1) {
-        SwitchState(JoystickState::MANUAL);
-      } else {
-        int num_buttons_pressed =
-            std::accumulate(buttons.begin(), buttons.end(), 0);
-        if (num_buttons_pressed == 1 && buttons[FLAGS_autonomous_button] == 1) {
+      if (button_mode) {
+        if (buttons[CONFIG_manual_button] == 1) {
+          SwitchState(JoystickState::MANUAL);
+        } else {
+          int num_buttons_pressed =
+              std::accumulate(buttons.begin(), buttons.end(), 0);
+          if (num_buttons_pressed == 1 && buttons[CONFIG_autonomous_button] == 1) {
+            SwitchState(JoystickState::AUTONOMOUS);
+          }
+        }
+      } else if (axis_mode) {
+        if (axes[CONFIG_manual_autonomous_axis] < 0) {
+          SwitchState(JoystickState::MANUAL);
+        } else if (axes[CONFIG_manual_autonomous_axis] > 0) {
           SwitchState(JoystickState::AUTONOMOUS);
         }
       }
     } break;
     case JoystickState::MANUAL: {
-      if (buttons[FLAGS_manual_button] == 0) {
-        SwitchState(JoystickState::STOPPED);
+      if (button_mode) {
+        if (buttons[CONFIG_manual_button] == 0) {
+          SwitchState(JoystickState::STOPPED);
+        }
+      } else if (axis_mode) {
+        if (axes[CONFIG_manual_autonomous_axis] >= 0) {
+          SwitchState(JoystickState::STOPPED);
+        }
       }
     } break;
     case JoystickState::AUTONOMOUS: {
-      for (const int32_t& b : buttons) {
-        if (b != 0) {
+      if (button_mode) {
+        for (const int32_t& b : buttons) {
+          if (b != 0) {
+            SwitchState(JoystickState::STOPPED);
+            break;
+          }
+        }
+      } else if (axis_mode) {
+        if (axes[CONFIG_manual_autonomous_axis] <= 0) {
           SwitchState(JoystickState::STOPPED);
-          break;
         }
       }
     } break;
@@ -153,8 +202,6 @@ void PublishCommand() {
   }
 }
 
-#include "math/math_util.h"
-
 float JoystickValue(float x, float scale) {
   static const float kDeadZone = 0.02;
   if (fabs(x) < kDeadZone) return 0;
@@ -163,26 +210,38 @@ float JoystickValue(float x, float scale) {
 
 void SetManualCommand(const vector<int32_t>& buttons,
                       const vector<float>& axes) {
-  const int kSitBtn = 3;
-  const int kStandBtn = 0;
-  const int kXAxis = 4;
-  const int kYAxis = 3;
-  const int kRAxis = 0;
   const float kMaxLinearSpeed = 1.6;
   const float kMaxRotationSpeed = math_util::DegToRad(90);
   std_srvs::Trigger trigger_req;
-  manual_cmd_.linear.x = JoystickValue(axes[kXAxis], -kMaxLinearSpeed);
-  manual_cmd_.linear.y = JoystickValue(axes[kYAxis], -kMaxLinearSpeed);
-  manual_cmd_.angular.z = JoystickValue(axes[kRAxis], -kMaxRotationSpeed);
+  manual_cmd_.linear.x = JoystickValue(axes[CONFIG_x_axis], CONFIG_axis_scale * kMaxLinearSpeed);
+  // The connection point of the y axis on the controller broke and it returns unstable values.
+  // Turn off y-velocity until it is fixed.
+  manual_cmd_.linear.y = JoystickValue(axes[CONFIG_y_axis], 0.0f * CONFIG_axis_scale * kMaxLinearSpeed);
+  manual_cmd_.angular.z = JoystickValue(axes[CONFIG_r_axis], CONFIG_axis_scale * kMaxRotationSpeed);
+
   if (state_ == JoystickState::MANUAL) {
-    if (buttons[kSitBtn]) {
+    const bool button_mode = (CONFIG_sit_button >= 0 && CONFIG_stand_button >= 0);
+    const bool axis_mode = (CONFIG_sit_stand_axis >= 0);
+
+    bool do_sit = false;
+    bool do_stand = false;
+
+    if (button_mode) {
+      do_sit = buttons[CONFIG_sit_button] != 0;
+      do_stand = buttons[CONFIG_stand_button] != 0;
+    } else if (axis_mode) {
+      do_sit = axes[CONFIG_sit_stand_axis] > 0;
+      do_stand = axes[CONFIG_sit_stand_axis] < 0;
+    }
+
+    if (do_sit) {
       if (!sit_service_.call(trigger_req)) {
         fprintf(stderr, "Error calling sit service!\n");
       } else {
         sitting_ = true;
       }
       Sleep(0.5);
-    } else if (buttons[kStandBtn]) {
+    } else if (do_stand) {
       if (!stand_service_.call(trigger_req)) {
         fprintf(stderr, "Error calling stand service!\n");
       } else {
@@ -195,12 +254,9 @@ void SetManualCommand(const vector<int32_t>& buttons,
 
 void LoggingControls(const vector<int32_t>& buttons) {
   // See if recording should start.
-  const int kLeftBumper = 4;
-  const int kStartBtn = 2;
-  const int kStopBtn = 1;
-  if (buttons.size() >= kLeftBumper && buttons[kLeftBumper] == 1) {
+  if ((int) buttons.size() >= CONFIG_left_bumper && buttons[CONFIG_left_bumper] == 1) {
     static bool recording = false;
-    if (recording && buttons[kStopBtn] == 1) {
+    if (recording && buttons[CONFIG_record_stop_button] == 1) {
       recording = false;
       if (system("rosnode kill joystick_rosbag_record") != 0) {
         printf("Unable to kill rosbag!\n");
@@ -208,8 +264,7 @@ void LoggingControls(const vector<int32_t>& buttons) {
         printf("Stopped recording rosbag.\n");
       }
       Sleep(0.5);
-    } else if (!recording && buttons[kStartBtn] == 1) {
-
+    } else if (!recording && buttons[CONFIG_record_start_button] == 1) {
       printf("Starting recording rosbag...\n");
       if (system(CONFIG_rosbag_record_cmd.c_str()) != 0) {
         printf("Unable to record\n");
@@ -256,7 +311,7 @@ int main(int argc, char** argv) {
     joystick.ProcessEvents(2);
     joystick.GetAllAxes(&axes);
     joystick.GetAllButtons(&buttons);
-    UpdateState(buttons);
+    UpdateState(buttons, axes);
     SetManualCommand(buttons, axes);
     PublishCommand();
     LoggingControls(buttons);
@@ -277,4 +332,3 @@ int main(int argc, char** argv) {
   joystick.Close();
   return 0;
 }
-
