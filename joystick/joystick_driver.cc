@@ -62,6 +62,7 @@ CONFIG_INT(sit_stand_axis, "Mapping.sit_stand_axis");
 CONFIG_INT(x_axis, "Mapping.x_axis");
 CONFIG_INT(y_axis, "Mapping.y_axis");
 CONFIG_INT(r_axis, "Mapping.r_axis");
+CONFIG_INT(contingency_axis, "Mapping.contingency_axis");
 CONFIG_FLOAT(axis_scale, "Mapping.axis_scale");
 
 CONFIG_INT(left_bumper, "Mapping.left_bumper");
@@ -87,6 +88,7 @@ geometry_msgs::Twist last_cmd_;
 geometry_msgs::Twist manual_cmd_;
 ros::Publisher cmd_publisher_;
 ros::Publisher enable_autonomy_publisher_;
+ros::Publisher enable_contingency_publisher_;
 ros::ServiceClient sit_service_;
 ros::ServiceClient stand_service_;
 bool sitting_ = false;
@@ -277,6 +279,10 @@ void LoggingControls(const vector<int32_t>& buttons) {
   }
 }
 
+bool GetContingencyFromJoystick(const vector<int32_t>& buttons, const vector<float>& axes) {
+  return (axes[CONFIG_contingency_axis] >= 0);
+}
+
 int main(int argc, char** argv) {
   google::ParseCommandLineFlags(&argc, &argv, false);
   google::InitGoogleLogging(argv[0]);
@@ -291,6 +297,7 @@ int main(int argc, char** argv) {
   stand_service_ = n.serviceClient<std_srvs::Trigger>("spot/stand");
   sit_service_ = n.serviceClient<std_srvs::Trigger>("spot/sit");
   enable_autonomy_publisher_ = n.advertise<std_msgs::Bool>("autonomy_arbiter/enabled", 1);
+  enable_contingency_publisher_ = n.advertise<std_msgs::Bool>("/contingency/enable", 1);
   Joystick joystick;
   if (!joystick.Open(FLAGS_idx)) {
     fprintf(stderr, "ERROR: Unable to open joystick)!\n");
@@ -306,7 +313,9 @@ int main(int argc, char** argv) {
   manual_cmd_ = ZeroTwist();
   RateLoop rate_loop(60);
   std_msgs::Bool enable_autonomy_msg;
+  std_msgs::Bool enable_contingency_msg;
   enable_autonomy_msg.data = false;
+  enable_contingency_msg.data = false;
   while (ros::ok()) {
     joystick.ProcessEvents(2);
     joystick.GetAllAxes(&axes);
@@ -324,7 +333,9 @@ int main(int argc, char** argv) {
     } else {
       enable_autonomy_msg.data = false;
     }
+    enable_contingency_msg.data = GetContingencyFromJoystick(buttons, axes);
     enable_autonomy_publisher_.publish(enable_autonomy_msg);
+    enable_contingency_publisher_.publish(enable_contingency_msg);
     ros::spinOnce();
     rate_loop.Sleep();
   }

@@ -83,6 +83,7 @@ Four Trim Sliders: adjust zero point of joysticks
     x_axis = 3;
     y_axis = 2;
     r_axis = 0;
+    contingency_axis = 1;
     axis_scale = 32768 / 23638;
 
     left_bumper = 0;
