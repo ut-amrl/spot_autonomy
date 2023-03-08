@@ -43,6 +43,12 @@
      respawn="false"
      respawn_delay="2" />
 
+  <node name="contingency_image_extractor"
+     pkg="graph_navigation"
+     type="safe_location_from_image.py"
+     if="true"
+     output="screen" />
+
   <node name="robofleet_client"
       pkg="spot_autonomy"
       type="robofleet_client"
