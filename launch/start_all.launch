@@ -6,11 +6,11 @@
   <include file="$(find spot_autonomy)/launch/start_clearpath_spot.launch" />
   <include file="$(find vectornav)/launch/vectornav.launch" />
 
-  <node name="contingency_image_extractor"
+  <!-- <node name="contingency_image_extractor"
      pkg="graph_navigation"
      type="safe_location_from_image.py"
      if="true"
-     output="screen" />
+     output="screen" /> -->
 
   <node name="depth_to_lidar"
       pkg="k4a_ros"
