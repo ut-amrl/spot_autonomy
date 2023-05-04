@@ -5,7 +5,7 @@ SET(CMAKE_AUTOMOC ON)
 SET(CMAKE_AUTORCC ON)
 SET(CMAKE_AUTOUIC ON)
 
-SET(CMAKE_CXX_FLAGS "-march=native -Wall -Werror -g -Wno-unused-function")
+SET(CMAKE_CXX_FLAGS "-march=native -Wall -g -Wno-unused-function")
 set(CMAKE_CXX_STANDARD 14)
 
 IF(${CMAKE_BUILD_TYPE} MATCHES "Release")
