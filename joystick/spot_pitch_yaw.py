@@ -22,7 +22,7 @@ class SpotPitchYaw:
     def convert_to_rad(self, degrees):
         return degrees * (math.pi / 180)
 
-    def map_to_range(x, max_in, max_out):
+    def map_to_range(self, x, max_in, max_out):
         in_min = -max_in
         in_max = max_in
         out_min = -max_out
