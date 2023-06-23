@@ -1,3 +1,12 @@
+-- DO NOT CHANGE (these are mappings for the spektrum dxs controller)
+LEFT_HORIZ_AXIS = 0;
+LEFT_VERT_AXIS = 1;
+RIGHT_HORIZ_AXIS = 2;
+RIGHT_VERT_AXIS = 3;
+LEFT_PROTRUDING_FRONT_TOGGLE_AXIS = 4;
+LEFT_BLACK_BUTTON_AXIS = 5;
+LEFT_PROTRUDING_UP_TOGGLE_AXIS = 6;
+
 record_cmd = "rosbag record /status /velodyne_points /scan /imu/data /jackal_velocity_controller/odom /gps/fix /gps/vel /imu/data_raw /tf /localization /move_base_simple/goal /navigation/cmd_vel /set_nav_target /set_pose"..
     " /image_raw/compressed "..
     " /joint_states"..
@@ -74,15 +83,17 @@ Four Trim Sliders: adjust zero point of joysticks
 --]]
     manual_button = -1;
     autonomous_button = -1;
-    manual_autonomous_axis = 6;
+    manual_autonomous_axis = LEFT_PROTRUDING_UP_TOGGLE_AXIS;
 
     sit_button = -1;
     stand_button = -1;
-    sit_stand_axis = 4;
+    sit_stand_axis = LEFT_PROTRUDING_FRONT_TOGGLE_AXIS;
 
-    x_axis = 3;
-    y_axis = 2;
-    r_axis = 0;
+    x_axis = RIGHT_VERT_AXIS;
+    y_axis = RIGHT_HORIZ_AXIS; -- note: no effect, see driver code (multiplying by 0.0)
+    r_axis = RIGHT_HORIZ_AXIS;
+    pitch_axis = LEFT_VERT_AXIS;
+    yaw_axis = LEFT_HORIZ_AXIS;
     axis_scale = 32768 / 23638;
 
     left_bumper = 0;

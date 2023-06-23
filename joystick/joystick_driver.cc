@@ -36,6 +36,7 @@
 #include "ros/ros.h"
 #include "sensor_msgs/Joy.h"
 #include "std_msgs/Bool.h"
+#include "std_msgs/Float32MultiArray.h"
 #include "std_srvs/SetBool.h"
 #include "std_srvs/Trigger.h"
 #include "util/timer.h"
@@ -62,6 +63,8 @@ CONFIG_INT(sit_stand_axis, "Mapping.sit_stand_axis");
 CONFIG_INT(x_axis, "Mapping.x_axis");
 CONFIG_INT(y_axis, "Mapping.y_axis");
 CONFIG_INT(r_axis, "Mapping.r_axis");
+CONFIG_INT(pitch_axis, "Mapping.pitch_axis");
+CONFIG_INT(yaw_axis, "Mapping.yaw_axis");
 CONFIG_FLOAT(axis_scale, "Mapping.axis_scale");
 
 CONFIG_INT(left_bumper, "Mapping.left_bumper");
@@ -87,6 +90,7 @@ geometry_msgs::Twist last_cmd_;
 geometry_msgs::Twist manual_cmd_;
 ros::Publisher cmd_publisher_;
 ros::Publisher enable_autonomy_publisher_;
+ros::Publisher pitch_yaw_axes_values_publisher_;
 ros::ServiceClient sit_service_;
 ros::ServiceClient stand_service_;
 bool sitting_ = false;
@@ -277,6 +281,14 @@ void LoggingControls(const vector<int32_t>& buttons) {
   }
 }
 
+std_msgs::Float32MultiArray GetPitchYawMsg(const vector<int32_t>& buttons, const vector<float>& axes) {
+  std_msgs::Float32MultiArray msg;
+  msg.data.resize(2);
+  msg.data[0] = axes[CONFIG_pitch_axis];
+  msg.data[1] = axes[CONFIG_yaw_axis];
+  return msg;
+}
+
 int main(int argc, char** argv) {
   google::ParseCommandLineFlags(&argc, &argv, false);
   google::InitGoogleLogging(argv[0]);
@@ -291,6 +303,7 @@ int main(int argc, char** argv) {
   stand_service_ = n.serviceClient<std_srvs::Trigger>("spot/stand");
   sit_service_ = n.serviceClient<std_srvs::Trigger>("spot/sit");
   enable_autonomy_publisher_ = n.advertise<std_msgs::Bool>("autonomy_arbiter/enabled", 1);
+  pitch_yaw_axes_values_publisher_ = n.advertise<std_msgs::Float32MultiArray>("pitch_yaw_axes_values", 1);
   Joystick joystick;
   if (!joystick.Open(FLAGS_idx)) {
     fprintf(stderr, "ERROR: Unable to open joystick)!\n");
@@ -325,6 +338,7 @@ int main(int argc, char** argv) {
       enable_autonomy_msg.data = false;
     }
     enable_autonomy_publisher_.publish(enable_autonomy_msg);
+    pitch_yaw_axes_values_publisher_.publish(GetPitchYawMsg(buttons, axes));
     ros::spinOnce();
     rate_loop.Sleep();
   }
