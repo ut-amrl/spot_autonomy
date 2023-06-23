@@ -14,6 +14,13 @@
       output="screen"
   />
 
+  <node name="pitch_yaw"
+      pkg="spot_autonomy"
+      type="spot_pitch_yaw.py"
+      respawn="true"
+      respawn_delay="2"
+      output="screen" />
+
   <node name="joystick"
       pkg="spot_autonomy"
       type="joystick"
