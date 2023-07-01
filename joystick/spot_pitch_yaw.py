@@ -50,7 +50,7 @@ class SpotPitchYaw:
             processed_pitch = self.map_to_range(raw_pitch, 0.75, self.convert_to_rad(self.MAX_PITCH))
         
         p = Pose()
-        p.orientation.x, p.orientation.y, p.orientation.z, p.orientation.w = self.euler_to_quaternion(0.0, processed_pitch, processed_yaw)
+        p.orientation.x, p.orientation.y, p.orientation.z, p.orientation.w = self.euler_to_quaternion(0.0, -processed_pitch, processed_yaw)
         self.body_pose_pub.publish(p)
         
 if __name__ == '__main__':
