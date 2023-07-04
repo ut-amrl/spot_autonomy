@@ -16,6 +16,7 @@ class SpeakerBasic:
         self.SPEAKER_BUTTON_TOPIC = "/speaker_button_value"
         self.text_file_path = "speech.txt"
         self.text_lines = []
+        self.lock = threading.Lock()  # so that the callback is not called multiple times if the first one is running
 
         with open(self.text_file_path, 'r') as file:
             # Read all lines and store them in a list
@@ -24,10 +25,17 @@ class SpeakerBasic:
         self.text_lines = [line.strip() for line in self.text_lines]
         self.text_line_counter = 0
         self.prev_val = None
-        rospy.Subscriber(self.SPEAKER_BUTTON_TOPIC, Int32, self.speaker_basic_callback, queue_size=1)
+        rospy.Subscriber(self.SPEAKER_BUTTON_TOPIC, Int32, self.wrapper_speaker_basic_callback, queue_size=1)
+
+    def wrapper_speaker_basic_callback(self, msg):
+        if self.lock.acquire(False):
+            try:
+                self.speaker_basic_callback(msg)
+            finally:
+                self.lock.release()
 
     def my_speak(self):
-        if self.text_line_counter == len(self.text_lines):
+        if self.text_line_counter >= len(self.text_lines):
             self.text_line_counter = 0  # start again
         tts = gTTS(self.text_lines[self.text_line_counter])  # Use gTTS to convert text to speech
 
@@ -46,8 +54,7 @@ class SpeakerBasic:
             self.prev_val = cur_val
             return
         if self.prev_val == 0 and cur_val == 1:  # button pressed
-            speak_thread = threading.Thread(target=self.my_speak)
-            speak_thread.start()
+            self.my_speak()
         self.prev_val = cur_val
 
 
