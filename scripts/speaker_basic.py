@@ -39,6 +39,7 @@ class SpeakerBasic:
         for idx, line in enumerate(self.text_lines):
             tts = gTTS(line)
             tts.save(os.path.join(self.audio_dir, f"{idx + 1}.mp3"))
+        print("------------------------------------------Generated all mp3s")
 
     def my_speak(self):
         if self.text_line_counter == len(self.text_lines):
