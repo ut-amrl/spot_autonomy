@@ -1,19 +1,26 @@
 #! /usr/bin/env python
 import rospy
-import tf.transformations
 from std_msgs.msg import Int32
-from geometry_msgs.msg import Pose
 import time
 import sys
-import math
-import os
 import signal
+import io
+from gtts import gTTS
+from pydub import AudioSegment
+from pydub.playback import play
 
 
 class SpeakerBasic:
     def __init__(self):
         self.SPEAKER_BUTTON_TOPIC = "/speaker_button_value"
-        self.text_lines = ["Hey how are you?", "I am good", "Have a nice day"]
+        self.text_file_path = "speech.txt"
+        self.text_lines = []
+
+        with open(self.text_file_path, 'r') as file:
+            # Read all lines and store them in a list
+            self.text_lines = file.readlines()
+
+        self.text_lines = [line.strip() for line in self.text_lines]
         self.text_line_counter = 0
         self.prev_val = None
         rospy.Subscriber(self.SPEAKER_BUTTON_TOPIC, Int32, self.speaker_basic_callback, queue_size=1)
@@ -21,7 +28,15 @@ class SpeakerBasic:
     def my_speak(self):
         if self.text_line_counter == len(self.text_lines):
             self.text_line_counter = 0  # start again
-        os.system(f'espeak -ven+f3 "{self.text_lines[self.text_line_counter]}"')
+        tts = gTTS(self.text_lines[self.text_line_counter])  # Use gTTS to convert text to speech
+
+        # Save the speech to an in-memory bytes buffer
+        fp = io.BytesIO()
+        tts.write_to_fp(fp)
+        fp.seek(0)
+
+        audio = AudioSegment.from_file(fp, format='mp3')  # Create an AudioSegment object from the bytes buffer
+        play(audio)
         self.text_line_counter += 1
 
     def speaker_basic_callback(self, msg):
