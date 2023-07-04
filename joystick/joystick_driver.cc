@@ -306,8 +306,7 @@ int main(int argc, char** argv) {
   // printf("%s\n", CONFIG_rosbag_record_cmd.c_str());
   ros::NodeHandle n;
   ros::Publisher publisher = n.advertise<sensor_msgs::Joy>("joystick", 1);
-  ros::Subscriber cmd_subscriber =
-      n.subscribe("navigation/cmd_vel", 10, CommandCallback);
+  ros::Subscriber cmd_subscriber = n.subscribe("navigation/cmd_vel", 10, CommandCallback);
   cmd_publisher_ = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
   stand_service_ = n.serviceClient<std_srvs::Trigger>("spot/stand");
   sit_service_ = n.serviceClient<std_srvs::Trigger>("spot/sit");
