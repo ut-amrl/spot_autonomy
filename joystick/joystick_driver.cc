@@ -38,6 +38,7 @@
 #include "std_msgs/Bool.h"
 #include "std_msgs/Float32MultiArray.h"
 #include "std_msgs/Int32.h"
+#include "std_msgs/String.h"
 #include "std_srvs/SetBool.h"
 #include "std_srvs/Trigger.h"
 #include "util/timer.h"
@@ -88,6 +89,7 @@ enum class JoystickState {
 
 JoystickState state_ = JoystickState::STOPPED;
 double t_last_cmd_ = 0;
+std_msgs::String motion_mode_ = "joy";  // default to joystick. can be either of "joy" or "bag"
 geometry_msgs::Twist last_cmd_;
 geometry_msgs::Twist manual_cmd_;
 ros::Publisher cmd_publisher_;
@@ -193,6 +195,10 @@ void UpdateState(const vector<int32_t>& buttons, const vector<float>& axes) {
 void CommandCallback(const geometry_msgs::Twist& msg) {
   t_last_cmd_ = GetMonotonicTime();
   last_cmd_ = msg;
+}
+
+void MotionModeCallback(const std_msgs::String& msg) {
+  motion_mode_ = msg.data;
 }
 
 void PublishCommand() {
@@ -307,6 +313,7 @@ int main(int argc, char** argv) {
   ros::NodeHandle n;
   ros::Publisher publisher = n.advertise<sensor_msgs::Joy>("joystick", 1);
   ros::Subscriber cmd_subscriber = n.subscribe("navigation/cmd_vel", 10, CommandCallback);
+  ros::Subscriber motion_mode_subscriber = n.subscribe("motion_mode", 1, MotionModeCallback);
   cmd_publisher_ = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
   stand_service_ = n.serviceClient<std_srvs::Trigger>("spot/stand");
   sit_service_ = n.serviceClient<std_srvs::Trigger>("spot/sit");
@@ -335,7 +342,9 @@ int main(int argc, char** argv) {
     joystick.GetAllButtons(&buttons);
     UpdateState(buttons, axes);
     SetManualCommand(buttons, axes);
-    PublishCommand();
+    if (motion_mode_ == "joy") {
+      PublishCommand();
+    }
     // LoggingControls(buttons);  // disable rosbag record
     msg.header.stamp = ros::Time::now();
     msg.axes = axes;
@@ -347,8 +356,10 @@ int main(int argc, char** argv) {
       enable_autonomy_msg.data = false;
     }
     enable_autonomy_publisher_.publish(enable_autonomy_msg);
-    pitch_yaw_axes_values_publisher_.publish(GetPitchYawMsg(buttons, axes));
-    speaker_button_value_publisher_.publish(GetSpeakerButtonMsg(buttons));
+    if (motion_mode_ == "joy") {
+      pitch_yaw_axes_values_publisher_.publish(GetPitchYawMsg(buttons, axes));
+      speaker_button_value_publisher_.publish(GetSpeakerButtonMsg(buttons));
+    }
     ros::spinOnce();
     rate_loop.Sleep();
   }
