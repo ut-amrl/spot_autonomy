@@ -1,14 +1,14 @@
 #! /usr/bin/env python
 import rospy
-import time
 from std_msgs.msg import Int32
-import os
+import time
 import sys
 import signal
-import shutil
+import io
 from gtts import gTTS
 from pydub import AudioSegment
 from pydub.playback import play
+import threading
 
 
 class SpeakerBasic:
@@ -16,7 +16,6 @@ class SpeakerBasic:
         self.SPEAKER_BUTTON_TOPIC = "/speaker_button_value"
         self.text_file_path = "speech.txt"
         self.text_lines = []
-        self.audio_dir = "audio/"
 
         with open(self.text_file_path, 'r') as file:
             # Read all lines and store them in a list
@@ -25,30 +24,20 @@ class SpeakerBasic:
         self.text_lines = [line.strip() for line in self.text_lines]
         self.text_line_counter = 0
         self.prev_val = None
-
-        # Create audio directory if it does not exist
-        if not os.path.exists(self.audio_dir):
-            os.makedirs(self.audio_dir)
-
-        # Generate mp3 files
-        self.generate_mp3s()
-
         rospy.Subscriber(self.SPEAKER_BUTTON_TOPIC, Int32, self.speaker_basic_callback, queue_size=1)
-
-    def generate_mp3s(self):
-        for idx, line in enumerate(self.text_lines):
-            tts = gTTS(line)
-            tts.save(os.path.join(self.audio_dir, f"{idx + 1}.mp3"))
-        print("------------------------------------------Generated all mp3s")
 
     def my_speak(self):
         if self.text_line_counter == len(self.text_lines):
             self.text_line_counter = 0  # start again
+        tts = gTTS(self.text_lines[self.text_line_counter])  # Use gTTS to convert text to speech
 
-        audio_path = os.path.join(self.audio_dir, f"{self.text_line_counter + 1}.mp3")
-        audio = AudioSegment.from_file(audio_path)
+        # Save the speech to an in-memory bytes buffer
+        fp = io.BytesIO()
+        tts.write_to_fp(fp)
+        fp.seek(0)
+
+        audio = AudioSegment.from_file(fp, format='mp3')  # Create an AudioSegment object from the bytes buffer
         play(audio)
-
         self.text_line_counter += 1
 
     def speaker_basic_callback(self, msg):
@@ -57,7 +46,8 @@ class SpeakerBasic:
             self.prev_val = cur_val
             return
         if self.prev_val == 0 and cur_val == 1:  # button pressed
-            self.my_speak()
+            speak_thread = threading.Thread(target=self.my_speak)
+            speak_thread.start()
         self.prev_val = cur_val
 
 
@@ -66,8 +56,7 @@ if __name__ == '__main__':
     speaker_basic = SpeakerBasic()
 
     def signal_handler(sig, frame):
-        print("Ctrl+C detected! Deleting audio directory and killing speaker_basic node...")
-        shutil.rmtree(speaker_basic.audio_dir)
+        print("Ctrl+C detected! Killing speaker_basic node...")
         rospy.sleep(2)
         sys.exit(0)
 
