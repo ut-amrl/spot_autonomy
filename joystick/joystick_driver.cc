@@ -37,6 +37,7 @@
 #include "sensor_msgs/Joy.h"
 #include "std_msgs/Bool.h"
 #include "std_msgs/Float32MultiArray.h"
+#include "std_msgs/Int32.h"
 #include "std_srvs/SetBool.h"
 #include "std_srvs/Trigger.h"
 #include "util/timer.h"
@@ -70,6 +71,7 @@ CONFIG_FLOAT(axis_scale, "Mapping.axis_scale");
 CONFIG_INT(left_bumper, "Mapping.left_bumper");
 CONFIG_INT(record_start_button, "Mapping.record_start_button");
 CONFIG_INT(record_stop_button, "Mapping.record_stop_button");
+CONFIG_INT(speaker_button, "Mapping.speaker_button");
 
 CONFIG_STRING(rosbag_record_cmd, "record_cmd");
 
@@ -91,6 +93,7 @@ geometry_msgs::Twist manual_cmd_;
 ros::Publisher cmd_publisher_;
 ros::Publisher enable_autonomy_publisher_;
 ros::Publisher pitch_yaw_axes_values_publisher_;
+ros::Publisher speaker_button_value_publisher_;
 ros::ServiceClient sit_service_;
 ros::ServiceClient stand_service_;
 bool sitting_ = false;
@@ -132,48 +135,50 @@ void UpdateState(const vector<int32_t>& buttons, const vector<float>& axes) {
 
   switch (state_) {
     case JoystickState::STOPPED: {
-      if (button_mode) {
-        if (buttons[CONFIG_manual_button] == 1) {
-          SwitchState(JoystickState::MANUAL);
-        } else {
-          int num_buttons_pressed =
-              std::accumulate(buttons.begin(), buttons.end(), 0);
-          if (num_buttons_pressed == 1 && buttons[CONFIG_autonomous_button] == 1) {
-            SwitchState(JoystickState::AUTONOMOUS);
-          }
-        }
-      } else if (axis_mode) {
-        if (axes[CONFIG_manual_autonomous_axis] < 0) {
-          SwitchState(JoystickState::MANUAL);
-        } else if (axes[CONFIG_manual_autonomous_axis] > 0) {
-          SwitchState(JoystickState::AUTONOMOUS);
-        }
-      }
+      SwitchState(JoystickState::MANUAL);
+      // if (button_mode) {
+      //   if (buttons[CONFIG_manual_button] == 1) {
+      //     SwitchState(JoystickState::MANUAL);
+      //   } else {
+      //     int num_buttons_pressed =
+      //         std::accumulate(buttons.begin(), buttons.end(), 0);
+      //     if (num_buttons_pressed == 1 && buttons[CONFIG_autonomous_button] == 1) {
+      //       SwitchState(JoystickState::AUTONOMOUS);
+      //     }
+      //   }
+      // } else if (axis_mode) {
+      //   if (axes[CONFIG_manual_autonomous_axis] < 0) {
+      //     SwitchState(JoystickState::MANUAL);
+      //   } else if (axes[CONFIG_manual_autonomous_axis] > 0) {
+      //     SwitchState(JoystickState::AUTONOMOUS);
+      //   }
+      // }
     } break;
     case JoystickState::MANUAL: {
-      if (button_mode) {
-        if (buttons[CONFIG_manual_button] == 0) {
-          SwitchState(JoystickState::STOPPED);
-        }
-      } else if (axis_mode) {
-        if (axes[CONFIG_manual_autonomous_axis] >= 0) {
-          SwitchState(JoystickState::STOPPED);
-        }
-      }
+      // if (button_mode) {
+      //   if (buttons[CONFIG_manual_button] == 0) {
+      //     SwitchState(JoystickState::STOPPED);
+      //   }
+      // } else if (axis_mode) {
+      //   if (axes[CONFIG_manual_autonomous_axis] >= 0) {
+      //     SwitchState(JoystickState::STOPPED);
+      //   }
+      // }
     } break;
     case JoystickState::AUTONOMOUS: {
-      if (button_mode) {
-        for (const int32_t& b : buttons) {
-          if (b != 0) {
-            SwitchState(JoystickState::STOPPED);
-            break;
-          }
-        }
-      } else if (axis_mode) {
-        if (axes[CONFIG_manual_autonomous_axis] <= 0) {
-          SwitchState(JoystickState::STOPPED);
-        }
-      }
+      SwitchState(JoystickState::MANUAL);
+      // if (button_mode) {
+      //   for (const int32_t& b : buttons) {
+      //     if (b != 0) {
+      //       SwitchState(JoystickState::STOPPED);
+      //       break;
+      //     }
+      //   }
+      // } else if (axis_mode) {
+      //   if (axes[CONFIG_manual_autonomous_axis] <= 0) {
+      //     SwitchState(JoystickState::STOPPED);
+      //   }
+      // }
     } break;
     default: {
       // Must never happen.
@@ -218,9 +223,7 @@ void SetManualCommand(const vector<int32_t>& buttons,
   const float kMaxRotationSpeed = math_util::DegToRad(90);
   std_srvs::Trigger trigger_req;
   manual_cmd_.linear.x = JoystickValue(axes[CONFIG_x_axis], CONFIG_axis_scale * kMaxLinearSpeed);
-  // The connection point of the y axis on the controller broke and it returns unstable values.
-  // Turn off y-velocity until it is fixed.
-  manual_cmd_.linear.y = JoystickValue(axes[CONFIG_y_axis], 0.0f * CONFIG_axis_scale * kMaxLinearSpeed);
+  manual_cmd_.linear.y = JoystickValue(axes[CONFIG_y_axis], CONFIG_axis_scale * kMaxLinearSpeed);
   manual_cmd_.angular.z = JoystickValue(axes[CONFIG_r_axis], CONFIG_axis_scale * kMaxRotationSpeed);
 
   if (state_ == JoystickState::MANUAL) {
@@ -289,6 +292,12 @@ std_msgs::Float32MultiArray GetPitchYawMsg(const vector<int32_t>& buttons, const
   return msg;
 }
 
+std_msgs::Int32 GetSpeakerButtonMsg(const vector<int32_t>& buttons) {
+  std_msgs::Int32 msg;
+  msg.data = buttons[CONFIG_speaker_button];
+  return msg;
+}
+
 int main(int argc, char** argv) {
   google::ParseCommandLineFlags(&argc, &argv, false);
   google::InitGoogleLogging(argv[0]);
@@ -304,6 +313,7 @@ int main(int argc, char** argv) {
   sit_service_ = n.serviceClient<std_srvs::Trigger>("spot/sit");
   enable_autonomy_publisher_ = n.advertise<std_msgs::Bool>("autonomy_arbiter/enabled", 1);
   pitch_yaw_axes_values_publisher_ = n.advertise<std_msgs::Float32MultiArray>("pitch_yaw_axes_values", 1);
+  speaker_button_value_publisher_ = n.advertise<std_msgs::Int32>("speaker_button_value", 1);
   Joystick joystick;
   if (!joystick.Open(FLAGS_idx)) {
     fprintf(stderr, "ERROR: Unable to open joystick)!\n");
@@ -327,7 +337,7 @@ int main(int argc, char** argv) {
     UpdateState(buttons, axes);
     SetManualCommand(buttons, axes);
     PublishCommand();
-    LoggingControls(buttons);
+    // LoggingControls(buttons);  // disable rosbag record
     msg.header.stamp = ros::Time::now();
     msg.axes = axes;
     msg.buttons = buttons;
@@ -339,6 +349,7 @@ int main(int argc, char** argv) {
     }
     enable_autonomy_publisher_.publish(enable_autonomy_msg);
     pitch_yaw_axes_values_publisher_.publish(GetPitchYawMsg(buttons, axes));
+    speaker_button_value_publisher_.publish(GetSpeakerButtonMsg(buttons));
     ros::spinOnce();
     rate_loop.Sleep();
   }

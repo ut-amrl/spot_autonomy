@@ -13,8 +13,8 @@ class SpotPitchYaw:
     def __init__(self):
         self.BODY_POSE_TOPIC = "/spot/body_pose"
         self.PITCH_YAW_TOPIC = "/pitch_yaw_axes_values"
-        self.MAX_PITCH = 60 # degrees
-        self.MAX_YAW = 60 # degrees
+        self.MAX_PITCH = 75 # degrees
+        self.MAX_YAW = 75 # degrees
         self.current_pitch_yaw = None
         self.body_pose_pub = rospy.Publisher(self.BODY_POSE_TOPIC, Pose, queue_size=1)
         rospy.Subscriber(self.PITCH_YAW_TOPIC, Float32MultiArray, self.pitch_yaw_callback, queue_size=1)

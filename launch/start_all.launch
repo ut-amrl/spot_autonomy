@@ -11,12 +11,18 @@
       type="depth_to_lidar"
       args="-config_file $(find k4a_ros)/config/kinect.lua -rgb -fps 30 -resolution 1536"
       respawn="false"
-      output="screen"
-  />
+      output="screen" />
 
   <node name="pitch_yaw"
       pkg="spot_autonomy"
       type="spot_pitch_yaw.py"
+      respawn="true"
+      respawn_delay="2"
+      output="screen" />
+
+  <node name="speaker_basic"
+      pkg="spot_autonomy"
+      type="speaker_basic.py"
       respawn="true"
       respawn_delay="2"
       output="screen" />
