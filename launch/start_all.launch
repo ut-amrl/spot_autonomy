@@ -16,6 +16,7 @@
   <node name="pitch_yaw"
       pkg="spot_autonomy"
       type="spot_pitch_yaw.py"
+      cwd="node"
       respawn="true"
       respawn_delay="2"
       output="screen" />
@@ -23,6 +24,7 @@
   <node name="speaker_basic"
       pkg="spot_autonomy"
       type="speaker_basic.py"
+      cwd="node"
       respawn="true"
       respawn_delay="2"
       output="screen" />

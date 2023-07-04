@@ -8,6 +8,7 @@ import io
 from gtts import gTTS
 from pydub import AudioSegment
 from pydub.playback import play
+import threading
 
 
 class SpeakerBasic:
@@ -45,7 +46,8 @@ class SpeakerBasic:
             self.prev_val = cur_val
             return
         if self.prev_val == 0 and cur_val == 1:  # button pressed
-            self.my_speak()
+            speak_thread = threading.Thread(target=self.my_speak)
+            speak_thread.start()
         self.prev_val = cur_val
 
 

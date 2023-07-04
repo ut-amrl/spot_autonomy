@@ -11,7 +11,7 @@ class MotionReplay:
         self.bag_file = bag_file
 
     def play_bag(self):
-        process = subprocess.Popen(['rosbag', 'play', self.bag_file] + self.TOPICS)
+        process = subprocess.Popen(['rosbag', 'play', self.bag_file, '--topics'] + self.TOPICS)
         process.communicate()
 
 

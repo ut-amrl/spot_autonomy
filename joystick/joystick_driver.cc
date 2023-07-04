@@ -89,7 +89,7 @@ enum class JoystickState {
 
 JoystickState state_ = JoystickState::STOPPED;
 double t_last_cmd_ = 0;
-std_msgs::String motion_mode_ = "joy";  // default to joystick. can be either of "joy" or "bag"
+std_msgs::String motion_mode_;
 geometry_msgs::Twist last_cmd_;
 geometry_msgs::Twist manual_cmd_;
 ros::Publisher cmd_publisher_;
@@ -198,7 +198,7 @@ void CommandCallback(const geometry_msgs::Twist& msg) {
 }
 
 void MotionModeCallback(const std_msgs::String& msg) {
-  motion_mode_ = msg.data;
+  motion_mode_ = msg;
 }
 
 void PublishCommand() {
@@ -331,6 +331,7 @@ int main(int argc, char** argv) {
   Joy msg;
   msg.header.frame_id = "joystick";
   msg.header.seq = 0;
+  motion_mode_.data = "joy";  // default to joystick. can be either of "joy" or "bag"
 
   manual_cmd_ = ZeroTwist();
   RateLoop rate_loop(60);
@@ -342,7 +343,7 @@ int main(int argc, char** argv) {
     joystick.GetAllButtons(&buttons);
     UpdateState(buttons, axes);
     SetManualCommand(buttons, axes);
-    if (motion_mode_ == "joy") {
+    if (motion_mode_.data == "joy") {
       PublishCommand();
     }
     // LoggingControls(buttons);  // disable rosbag record
@@ -356,7 +357,7 @@ int main(int argc, char** argv) {
       enable_autonomy_msg.data = false;
     }
     enable_autonomy_publisher_.publish(enable_autonomy_msg);
-    if (motion_mode_ == "joy") {
+    if (motion_mode_.data == "joy") {
       pitch_yaw_axes_values_publisher_.publish(GetPitchYawMsg(buttons, axes));
       speaker_button_value_publisher_.publish(GetSpeakerButtonMsg(buttons));
     }
