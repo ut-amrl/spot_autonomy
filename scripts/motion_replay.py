@@ -4,6 +4,8 @@ import time
 import subprocess
 import argparse
 from std_msgs.msg import String
+import signal
+import sys
 
 
 class MotionReplay:
@@ -13,13 +15,18 @@ class MotionReplay:
         self.process = None
         self.MOTION_MODE_TOPIC = "/motion_mode"
         self.motion_mode_pub = rospy.Publisher(self.MOTION_MODE_TOPIC, String, queue_size=1)
-        self.init_motion_mode()
 
     def init_motion_mode(self):
         while self.motion_mode_pub.get_num_connections() < 1:
             time.sleep(0.1)
         msg = String()
         msg.data = "bag"
+        self.motion_mode_pub.publish(msg)
+        time.sleep(2)
+
+    def end_motion_mode(self):
+        msg = String()
+        msg.data = "joy"
         self.motion_mode_pub.publish(msg)
         time.sleep(2)
 
@@ -35,10 +42,7 @@ class MotionReplay:
             if self.process.poll() is None:
                 self.process.kill()
                 time.sleep(2)
-        msg = String()
-        msg.data = "joy"
-        self.motion_mode_pub.publish(msg)
-        time.sleep(2)
+        
 
 
 if __name__ == '__main__':
@@ -49,13 +53,19 @@ if __name__ == '__main__':
     args = parser.parse_args(rospy.myargv()[1:])
 
     motion_replay = MotionReplay(args.bag)
+    motion_replay.init_motion_mode()
 
-    try:
-        motion_replay.play_bag()
-    except KeyboardInterrupt:
-        # Gracefully handle CTRL+C by terminating the subprocess
+    def signal_handler(sig, frame):
         print("\nCTRL+C pressed. Terminating the motion_replay node.")
         motion_replay.stop_bag()
-    finally:
         print("Exiting motion_replay script.")
-        time.sleep(1)
+        motion_replay.end_motion_mode()
+        rospy.sleep(2)
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, signal_handler)
+
+    motion_replay.play_bag()
+    print("Exiting motion_replay script.")
+    motion_replay.end_motion_mode()
+    time.sleep(1)
