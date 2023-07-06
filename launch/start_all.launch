@@ -4,14 +4,14 @@
 
   <!-- <include file="$(find spot_autonomy)/launch/start_spot_interface.launch" />   -->
   <include file="$(find spot_autonomy)/launch/start_clearpath_spot.launch" />
-  <include file="$(find vectornav)/launch/vectornav.launch" />
+  <!-- <include file="$(find vectornav)/launch/vectornav.launch" /> -->
 
-  <node name="depth_to_lidar"
+  <!-- <node name="depth_to_lidar"
       pkg="k4a_ros"
       type="depth_to_lidar"
       args="-config_file $(find k4a_ros)/config/kinect.lua -rgb -fps 30 -resolution 1536"
       respawn="false"
-      output="screen" />
+      output="screen" /> -->
 
   <node name="pitch_yaw"
       pkg="spot_autonomy"
@@ -21,13 +21,13 @@
       respawn_delay="2"
       output="screen" />
 
-  <!-- <node name="speaker_basic"
+  <node name="speaker_basic"
       pkg="spot_autonomy"
       type="speaker_basic.py"
       cwd="node"
       respawn="true"
       respawn_delay="2"
-      output="screen" /> -->
+      output="screen" />
 
   <node name="joystick"
       pkg="spot_autonomy"
@@ -44,7 +44,7 @@
       respawn="true"
       respawn_delay="2" />
 
-  <node name="enml"
+  <!-- <node name="enml"
       pkg="spot_autonomy"
       type="enml"
       args="-d0 -c $(find spot_autonomy)/config -r enml.lua -m $(find spot_autonomy)/maps"
@@ -56,7 +56,7 @@
      type="navigation"
      args="-robot_config $(find spot_autonomy)/config/navigation.lua"
      respawn="false"
-     respawn_delay="2" />
+     respawn_delay="2" /> -->
 
   <node name="robofleet_client"
       pkg="spot_autonomy"
