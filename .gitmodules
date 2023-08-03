@@ -19,3 +19,6 @@
 [submodule "robofleet_client"]
 	path = robofleet_client
 	url = git@github.com:ut-amrl/robofleet_client
+[submodule "spot_calib"]
+	path = spot_calib
+	url = git@github.com:ut-amrl/spot_calib.git
