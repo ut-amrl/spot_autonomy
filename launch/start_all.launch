@@ -31,6 +31,15 @@
       respawn_delay="2"
       output="screen" />
 
+  <node name="contingency_nn_image"
+      pkg="spot_autonomy"
+      type="contingency_nn_image.py"
+      args="--res 1440"
+      cwd="node"
+      respawn="true"
+      respawn_delay="2"
+      output="screen" />
+
   <node name="joystick"
       pkg="spot_autonomy"
       type="joystick"
