@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import warnings
 warnings.filterwarnings("ignore")
 import os
@@ -497,6 +498,6 @@ if __name__ == '__main__':
     rospy.init_node("contingency_nn_image", anonymous=False)
     parser = argparse.ArgumentParser()
     parser.add_argument("--res", default=1440, type=int, help="Camera resolution 1440 or 1536")
-    args = parser.parse_args()
+    args = parser.parse_args(rospy.myargv()[1:])
     p = PublishSafeSpot(res=args.res)
     rospy.spin()
