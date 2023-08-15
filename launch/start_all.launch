@@ -1,4 +1,6 @@
 <launch>
+  <arg name="gn_cmd_topic" default="navigation/cmd_vel" />
+
   <!-- Start Velodyne, and 3D to 2D conversions -->
   <include file="$(find spot_autonomy)/launch/velodyne.launch" />
 
@@ -30,7 +32,8 @@
  <node name="navigation"
      pkg="graph_navigation"
      type="navigation"
-     args="-robot_config $(find spot_autonomy)/config/navigation.lua"
+     args="-robot_config $(find spot_autonomy)/config/navigation.lua 
+            navigation/cmd_vel:=$(arg gn_cmd_topic)"
      respawn="false"
      respawn_delay="2" />
 
