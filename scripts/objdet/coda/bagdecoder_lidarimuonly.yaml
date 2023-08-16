@@ -1,0 +1,14 @@
+repository_root: "bags/"
+dataset_output_root: "bins/"
+
+#Bag Decoder Settings
+gen_data: True   # Generates data files
+
+sync_topics: [
+  "/ouster/lidar_packets",
+]
+
+sensor_topics: [
+  "/ouster/lidar_packets",
+  "/velodyne_points"
+]
