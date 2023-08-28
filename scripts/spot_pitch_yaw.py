@@ -5,6 +5,7 @@ from std_msgs.msg import Float32MultiArray
 from geometry_msgs.msg import Pose
 import time
 import sys
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../spot_calib'))
 import math
 import signal
 import argparse
@@ -22,12 +23,13 @@ class SpotPitchYaw:
         self.BODY_POSE_TOPIC = "/spot/body_pose"
         self.PITCH_YAW_TOPIC = "/pitch_yaw_axes_values"
         self.PC_TOPIC = "/corrected_velodyne_points"
-        self.Z_offset_spotbody_to_lidar = 0.5  # meters
+        self.anchor_head_point = None
+        self.Z_offset_spotbody_to_lidar = 0.32  # meters
         self.MAX_PITCH = 50  # degrees
         self.MAX_YAW = 50  # degrees
         self.obj_detector = ObjectDetection3D(ros_flag=False, open3dvis_bool=False, min_score=0.6)
         self.current_pitch_yaw = None
-        self.latest_human_head_spotbody_coords = None  # x y z
+        self.latest_vlp_points = None  # x y z
         self.body_pose_pub = rospy.Publisher(self.BODY_POSE_TOPIC, Pose, queue_size=1)
         rospy.Subscriber(self.PITCH_YAW_TOPIC, Float32MultiArray, self.pitch_yaw_callback, queue_size=1)
         rospy.Subscriber(self.PC_TOPIC, PointCloud2, self.pc_callback, queue_size=1)
@@ -39,7 +41,7 @@ class SpotPitchYaw:
         tree = cKDTree(box_centers)
         distances, indices = tree.query(origin)
         indices = np.asarray(indices).squeeze()
-        return boxes[indices[0]].reshape((1, 7))
+        return boxes[indices].reshape((1, 7))
 
     def pc_callback(self, msg):
         pc_cloud = ros_numpy.point_cloud2.pointcloud2_to_array(msg).reshape((1, -1))
@@ -48,20 +50,22 @@ class SpotPitchYaw:
         pc_np[..., 1] = pc_cloud['y']
         pc_np[..., 2] = pc_cloud['z']
         pc_np[..., 3] = pc_cloud['intensity']
-        latest_vlp_points = pc_np.reshape((-1, 4))
-        _, pred_boxes, pred_labels, _ = self.obj_detector.detect(latest_vlp_points)
+        self.latest_vlp_points = pc_np.reshape((-1, 4))
+
+    def process_pc(self, pc_np):
+        _, pred_boxes, pred_labels, _ = self.obj_detector.detect(pc_np)
         person_mask = np.where(pred_labels == 1, True, False)
-        person_boxes = pred_boxes[person_mask]
+        person_boxes = pred_boxes[person_mask].reshape((-1, 7))
         if len(person_boxes) > 0:
             closest_person_box = SpotPitchYaw.get_closest_box(person_boxes)
             corners = self.obj_detector.get_boxes_corners(closest_person_box).squeeze()  # 8 x 3
-            top_corners = corners[[0, 1, 2, 7], :]
+            top_corners = corners[[3, 4, 5, 6], :]
             mean_top_corner = list(np.mean(top_corners, axis=0).squeeze())
             mean_top_corner[2] -= 0.1  # decrease z to match face height
             mean_top_corner[2] += self.Z_offset_spotbody_to_lidar  # add z offset to transform to spot body frame
-            self.latest_human_head_spotbody_coords = mean_top_corner
+            return mean_top_corner
         else:
-            self.latest_human_head_spotbody_coords = None
+            return None
 
     @staticmethod
     def convert_to_rad(degrees):
@@ -101,15 +105,21 @@ class SpotPitchYaw:
             processed_pitch = -processed_pitch  # to ensure that raw_pitch > 0 corresponds to robot facing up
         elif self.mode == "auto":
             # only use the yaw toggle: away is auto (towards nearest human head), and else no pitch and yaw
-            if raw_yaw > 0 and self.latest_human_head_spotbody_coords is not None:
+            if self.latest_vlp_points is None:
+                return
+            if raw_yaw > 0 and self.anchor_head_point is None:
                 # processed_pitch is a radian angle such that it is positive when the robot is facing down
                 # processed_yaw is a radian angle such that it is positive when the robot is facing left
-                x0, y0, z0 = self.latest_human_head_spotbody_coords
+                self.anchor_head_point = self.process_pc(self.latest_vlp_points)
+            
+            if raw_yaw > 0 and self.anchor_head_point is not None:
+                x0, y0, z0 = self.anchor_head_point
                 processed_pitch = -math.atan2(z0, math.sqrt(x0**2 + y0**2))
                 processed_yaw = math.atan2(y0, x0)
             else:
                 processed_pitch = 0.0
                 processed_yaw = 0.0
+                self.anchor_head_point = None
         else:
             raise ValueError("Invalid mode. Options: auto, manual")
         p.orientation.x, p.orientation.y, p.orientation.z, p.orientation.w = SpotPitchYaw.euler_to_quaternion(0.0, processed_pitch, processed_yaw)

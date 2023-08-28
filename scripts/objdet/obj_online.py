@@ -4,6 +4,8 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # or any {'0', '1', '2'}
 import sys
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../..'))
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '.'))
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../spot_calib'))
 
 import numpy as np
 np.float = np.float64  # temp fix for following import https://github.com/eric-wieser/ros_numpy/issues/37

@@ -63,7 +63,7 @@
       respawn="true"
       respawn_delay="2" />
 
-  <!-- <node name="enml"
+  <node name="enml"
       pkg="spot_autonomy"
       type="enml"
       args="-d0 -c $(find spot_autonomy)/config -r enml.lua -m $(find spot_autonomy)/maps"
@@ -75,7 +75,7 @@
      type="navigation"
      args="-robot_config $(find spot_autonomy)/config/navigation.lua"
      respawn="false"
-     respawn_delay="2" /> -->
+     respawn_delay="2" />
 
   <node name="robofleet_client"
       pkg="spot_autonomy"

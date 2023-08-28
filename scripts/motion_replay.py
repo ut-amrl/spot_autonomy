@@ -10,7 +10,7 @@ import sys
 
 class MotionReplay:
     def __init__(self, bag_file):
-        self.TOPICS = ['/cmd_vel', '/spot/body_pose', '/speaker_button_value']
+        self.TOPICS = ['/cmd_vel', '/spot/body_pose']
         self.bag_file = bag_file
         self.process = None
         self.MOTION_MODE_TOPIC = "/motion_mode"
@@ -42,7 +42,6 @@ class MotionReplay:
             if self.process.poll() is None:
                 self.process.kill()
                 time.sleep(2)
-        
 
 
 if __name__ == '__main__':
