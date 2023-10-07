@@ -1,4 +1,8 @@
 <launch>
+  <arg name="mode" default="nominalnav"/>
+  <arg name="map" default="ahg2"/>
+  <arg name="stop_time" default="10"/>
+  <arg name="pose" default="manual"/>
   <!-- Start Velodyne, and 3D to 2D conversions -->
   <include file="$(find spot_autonomy)/launch/velodyne.launch" />
 
@@ -9,10 +13,28 @@
   <node name="depth_to_lidar"
       pkg="k4a_ros"
       type="depth_to_lidar"
-      args="-config_file $(find k4a_ros)/config/kinect.lua -rgb -fps 30 -resolution 1536"
+      args="-config_file $(find k4a_ros)/config/kinect.lua -rgb -fps 30 -resolution 1440"
       respawn="false"
       output="screen"
   />
+
+  <node name="demo_main"
+      pkg="spot_autonomy"
+      type="demo_main.py"
+      args="--mode $(arg mode) --stop_time $(arg stop_time) --map $(arg map) --pose $(arg pose)"
+      cwd="node"
+      respawn="true"
+      respawn_delay="2"
+      output="screen" />
+
+  <node name="correct_pc_publisher"
+      pkg="spot_autonomy"
+      type="correct_pc_publisher.py"
+      args="--res 1440"
+      cwd="node"
+      respawn="true"
+      respawn_delay="2"
+      output="screen" />
 
   <node name="joystick"
       pkg="spot_autonomy"
