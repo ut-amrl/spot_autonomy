@@ -2,10 +2,11 @@
 import numpy as np
 import rospy
 import time
-from std_msgs.msg import Int64
+from std_msgs.msg import Int64, Int32
 from geometry_msgs.msg import PoseStamped
 from amrl_msgs.msg import NavStatusMsg
 import argparse
+import os
 
 
 class WaypointNav:
@@ -27,11 +28,11 @@ class WaypointNav:
             (80.116, -227.031, 0.707, 0.707),  # gdc
             (61.820, -84.904, 0.135, 0.991),  # nhb
         ],
-	"emptymap": [
-	    (0.0, 0.0, -0.33072639176246144, 0.943726683840074),
-	    (3.93, -4.01, 0.707, 0.707),
-	    (4.51, 2.69, -0.9279770807567689, 0.3726372734847458),
-	],
+        "emptymap": [
+            (0.0, 0.0, -0.33072639176246144, 0.943726683840074),
+            (3.93, -4.01, 0.707, 0.707),
+            (4.51, 2.69, -0.9279770807567689, 0.3726372734847458),
+        ],
     }
 
     def __init__(self, stop_time, map):
@@ -40,17 +41,26 @@ class WaypointNav:
         self.traj = self.WAYPOINTS[map]
         self.next_goal = 0
         self.stop_detected_first_time = -1
+        self.INITIAL = True
 
         rospy.Subscriber('/navigation_goal_status', NavStatusMsg, self.nav_callback, queue_size=1)
         self.pub = rospy.Publisher('/move_base_simple/goal', PoseStamped, queue_size=1)
+        self.speech_pub = rospy.Publisher('/left_black_button_value', Int32, queue_size=1)
 
     def nav_callback(self, msg):
         pub_msg = PoseStamped()
         if msg.status == 0:  # stopped
             if self.stop_detected_first_time == -1:
                 self.stop_detected_first_time = rospy.get_rostime().secs
+                if not self.INITIAL:
+                    int_msg = Int32()
+                    int_msg.data = 1
+                    self.speech_pub.publish(int_msg)
             else:
-                if rospy.get_rostime().secs - self.stop_detected_first_time > self.stop_time:
+                if (rospy.get_rostime().secs - self.stop_detected_first_time > self.stop_time) or self.INITIAL:
+                    if self.INITIAL:
+                        time.sleep(10)
+                    self.INITIAL = False
                     self.stop_detected_first_time = -1
                     # publish next goal
                     pub_msg.pose.position.x = self.traj[self.next_goal][0]
@@ -68,7 +78,7 @@ class WaypointNav:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--stop_time", type=int, required=True, help="Time to stop at each waypoint")
-    parser.add_argument("--map", type=str, required=True, help="Map to use: ahg2/courtyard/tourguide")
+    parser.add_argument("--map", type=str, required=True, help="Map to use: ahg2/courtyard/tourguide/emptymap")
     args = parser.parse_args(rospy.myargv()[1:])
 
     rospy.init_node('waypoint_nav', anonymous=False)

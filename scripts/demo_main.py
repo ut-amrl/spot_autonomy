@@ -60,7 +60,7 @@ class DemoWrapper:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", type=str, required=True, help="Demo mode: nominalnav/waypoint/bodypose")
-    parser.add_argument("--map", type=str, required=True, help="(waypoint mode) Map to use: ahg2/courtyard/tourguide")
+    parser.add_argument("--map", type=str, required=True, help="(waypoint mode) Map to use: ahg2/courtyard/tourguide/emptymap")
     parser.add_argument("--stop_time", type=int, required=True, help="(waypoint mode) Time to stop at each waypoint")
     parser.add_argument("--pose", type=str, required=True, help="(bodypose mode) Pose mode: auto/manual")
     args = parser.parse_args(rospy.myargv()[1:])

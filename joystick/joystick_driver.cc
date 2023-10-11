@@ -198,6 +198,7 @@ void SetManualCommand(const vector<int32_t>& buttons, const vector<float>& axes)
 }
 
 void LoggingControls(const vector<int32_t>& buttons) {
+  // NOT active, its commented out below!
   // See if recording should start.
   if ((int)buttons.size() >= CONFIG_left_black_button && buttons[CONFIG_left_black_button] == 1) {
     static bool recording = false;
@@ -280,7 +281,7 @@ int main(int argc, char** argv) {
     UpdateState(buttons, axes);
     SetManualCommand(buttons, axes);
     PublishCommand();
-    LoggingControls(buttons);
+    // LoggingControls(buttons);
     msg.header.stamp = ros::Time::now();
     msg.axes = axes;
     msg.buttons = buttons;

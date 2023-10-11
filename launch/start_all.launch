@@ -15,8 +15,7 @@
       type="depth_to_lidar"
       args="-config_file $(find k4a_ros)/config/kinect.lua -rgb -fps 30 -resolution 1440"
       respawn="false"
-      output="screen"
-  />
+      output="screen" />
 
   <node name="demo_main"
       pkg="spot_autonomy"
@@ -26,6 +25,17 @@
       respawn="true"
       respawn_delay="2"
       output="screen" />
+
+  <group if="$(eval arg('map') == 'tourguide')">
+    <node name="speaker_basic"
+        pkg="spot_autonomy"
+        type="speaker_basic.py"
+        args="--map $(arg map)"
+        cwd="node"
+        respawn="true"
+        respawn_delay="2"
+        output="screen" />
+  </group>
 
   <node name="correct_pc_publisher"
       pkg="spot_autonomy"
