@@ -32,7 +32,6 @@ class Bodypose:
         self.MAX_PITCH = 50  # degrees
         self.MAX_YAW = 50  # degrees
         self.obj_detector = ObjectDetection3D(ros_flag=False, open3dvis_bool=False, min_score=0.6)
-        self.current_pitch_yaw = None
         self.latest_vlp_points = None  # x y z
         self.latest_pitch_value = None
         self.latest_yaw_value = None
