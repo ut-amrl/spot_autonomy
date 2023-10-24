@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+import roslib
+roslib.load_manifest('amrl_msgs')
 from std_msgs.msg import Int64, Int32
 from geometry_msgs.msg import PoseStamped
 from amrl_msgs.msg import NavStatusMsg
@@ -34,9 +36,9 @@ class WaypointNav:
         ],
         "courtyard": [
             (-10.1, 16.7, 0.0, 1.0),
-            (-1.7, 11.2, 0.0, 1.0),
-            (11.1, 17.1, 0.0, 1.0),
-            (-2.1, 23.1, 0.0, 1.0),
+            (-1.19, 5.56, 0.72, 0.69),
+            (9.69, 17.14, -0.99, 0.056),
+            (-1.88, 26.97, -0.72, 0.69),
         ],
         "tourguide": [
             (-10.031, 16.859, 0.0, 1.0),  # ahg
@@ -44,10 +46,14 @@ class WaypointNav:
             (80.116, -227.031, 0.707, 0.707),  # gdc
             (61.820, -84.904, 0.135, 0.991),  # nhb
         ],
-        "emptymap": [
+        "emptymap1": [
             (0.0, 0.0, -0.3969500385888669, 0.9178402185916115),
             (1.9010463953018188, -2.6240389347076416, 0.6731030619467686, 0.7395486921074802),
             (3.3516833782196045, 0.7416679263114929, -0.9846447535762185, 0.1745700697566109),
+        ],
+        "emptymap2": [
+            (0.0, 0.0, 0.0, 1.0),
+            (5.0, 0.0, 1.0, 0.0),
         ],
     }
 
@@ -152,7 +158,7 @@ class WaypointNav:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--stop_time", type=int, required=True, help="Time to stop at each waypoint")
-    parser.add_argument("--map", type=str, required=True, help="Map to use: ahg2/courtyard/tourguide/emptymap")
+    parser.add_argument("--map", type=str, required=True, help="Map to use: ahg2/courtyard/tourguide/emptymap1/emptymap2")
     args = parser.parse_args(rospy.myargv()[1:])
 
     rospy.init_node('waypoint_nav', anonymous=False)

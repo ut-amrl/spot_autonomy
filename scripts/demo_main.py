@@ -3,6 +3,8 @@ import os
 import sys
 sys.path.append("/home/undergrads/ut-amrl/object_detection_3d")
 sys.path.append("/home/undergrads/ut-amrl/spot_autonomy")
+import roslib
+roslib.load_manifest('amrl_msgs')
 import numpy as np
 import rospy
 import time
@@ -60,7 +62,7 @@ class DemoWrapper:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", type=str, required=True, help="Demo mode: nominalnav/waypoint/bodypose")
-    parser.add_argument("--map", type=str, required=True, help="(waypoint mode) Map to use: ahg2/courtyard/tourguide/emptymap")
+    parser.add_argument("--map", type=str, required=True, help="(waypoint mode) Map to use: ahg2/courtyard/tourguide/emptymap1/emptymap2")
     parser.add_argument("--stop_time", type=int, required=True, help="(waypoint mode) Time to stop at each waypoint")
     parser.add_argument("--pose", type=str, required=True, help="(bodypose mode) Pose mode: auto/manual")
     args = parser.parse_args(rospy.myargv()[1:])

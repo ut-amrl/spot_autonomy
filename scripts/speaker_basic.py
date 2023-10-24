@@ -61,7 +61,7 @@ class SpeakerBasic:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("--map", type=str, required=True, help="Map to use: ahg2/courtyard/tourguide/emptymap")
+    parser.add_argument("--map", type=str, required=True, help="Map to use: ahg2/courtyard/tourguide/emptymap1/emptymap2")
     args = parser.parse_args(rospy.myargv()[1:])
     rospy.init_node('speaker_basic')
     speaker_basic = SpeakerBasic(args.map)
