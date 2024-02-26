@@ -4,6 +4,14 @@
 
   <!-- <include file="$(find spot_autonomy)/launch/start_spot_interface.launch" />   -->
   <include file="$(find spot_autonomy)/launch/start_clearpath_spot.launch" />
+  <include file="$(find vectornav)/launch/vectornav.launch" />
+
+  <node name="depth_to_lidar"
+      pkg="k4a_ros"
+      type="depth_to_lidar"
+      args="-config_file $(find k4a_ros)/config/kinect.lua -rgb -fps 30 -resolution 1440"
+      respawn="false"
+      output="screen" />
 
   <node name="joystick"
       pkg="spot_autonomy"
