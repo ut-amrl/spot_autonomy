@@ -1,12 +1,12 @@
 <launch>
-  <arg name="only_barebones" default="false" />  <!-- default: use full stack nodes -->
+  <arg name="barebones" default="false" />  <!-- default: use full stack nodes -->
   <arg name="no_intermed" default="false" />  <!-- default: use intermediate planner -->
 
   <!-- Start Velodyne, and 3D to 2D conversions -->
   <include file="$(find spot_autonomy)/launch/velodyne.launch" />
 
   <include file="$(find spot_autonomy)/launch/start_clearpath_spot.launch" />
-  <include file="$(find vectornav)/launch/vectornav.launch" if="$(eval not only_barebones)" />
+  <include file="$(find vectornav)/launch/vectornav.launch" if="$(eval not barebones)" />
 
   <node name="depth_to_lidar"
       pkg="k4a_ros"
@@ -14,7 +14,7 @@
       args="-config_file $(find k4a_ros)/config/kinect.lua -rgb -fps 30 -resolution 1440"
       respawn="false"
       output="screen"
-      if="$(eval not only_barebones)" />
+      if="$(eval not barebones)" />
 
   <node name="joystick"
       pkg="spot_autonomy"
@@ -70,7 +70,7 @@
       args="raw in:=/spot/camera/frontleft/image compressed out:=/spot/camera/frontleft/image"
       respawn="true"
       respawn_delay="2"
-      if="$(eval not only_barebones)" />
+      if="$(eval not barebones)" />
 
   <node name="compress_image_right"
       pkg="image_transport"
@@ -78,7 +78,7 @@
       args="raw in:=/spot/camera/frontright/image compressed out:=/spot/camera/frontright/image"
       respawn="true"
       respawn_delay="2"
-      if="$(eval not only_barebones)" />
+      if="$(eval not barebones)" />
 
   <node name="compress_image_side_left"
       pkg="image_transport"
@@ -86,7 +86,7 @@
       args="raw in:=/spot/camera/left/image compressed out:=/spot/camera/left/image"
       respawn="true"
       respawn_delay="2"
-      if="$(eval not only_barebones)" />
+      if="$(eval not barebones)" />
 
   <node name="compress_image_side_right"
       pkg="image_transport"
@@ -94,7 +94,7 @@
       args="raw in:=/spot/camera/right/image compressed out:=/spot/camera/right/image"
       respawn="true"
       respawn_delay="2"
-      if="$(eval not only_barebones)" />
+      if="$(eval not barebones)" />
 
   <node name="compress_image_back"
       pkg="image_transport"
@@ -102,6 +102,6 @@
       args="raw in:=/spot/camera/back/image compressed out:=/spot/camera/back/image"
       respawn="true"
       respawn_delay="2"
-      if="$(eval not only_barebones)" />
+      if="$(eval not barebones)" />
 
 </launch>
