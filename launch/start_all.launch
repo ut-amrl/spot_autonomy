@@ -1,11 +1,15 @@
 <launch>
   <arg name="barebones" default="false" />  <!-- default: use full stack nodes -->
   <arg name="no_intermed" default="false" />  <!-- default: use intermediate planner -->
+  <arg name="dt" default="0.025" />   <!-- default: navloop dt -->
+  <arg name="cmd_dt" default="0.125" />   <!-- default: time-to-live for each command sent to Spot -->
 
   <!-- Start Velodyne, and 3D to 2D conversions -->
   <include file="$(find spot_autonomy)/launch/velodyne.launch" />
 
-  <include file="$(find spot_autonomy)/launch/start_clearpath_spot.launch" />
+  <include file="$(find spot_autonomy)/launch/start_clearpath_spot.launch">
+    <arg name="cmd_dt" value="$(arg cmd_dt)" />
+  </include>
   <include file="$(find vectornav)/launch/vectornav.launch" if="$(eval not barebones)" />
 
   <node name="depth_to_lidar"
@@ -43,7 +47,7 @@
  <node name="navigation"
      pkg="graph_navigation"
      type="navigation"
-     args="-robot_config $(find spot_autonomy)/config/navigation.lua --no_intermed=$(arg no_intermed)"
+     args="-robot_config $(find spot_autonomy)/config/navigation.lua --no_intermed=$(arg no_intermed) --dt=$(arg dt)"
      output="screen"
      respawn="false"
      respawn_delay="2" />
