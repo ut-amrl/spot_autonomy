@@ -32,12 +32,15 @@ while true; do
     random_x=$(rand_float $min_x $max_x)
     random_y=$(rand_float $min_y $max_y)
 
+    current_secs=$(date +%s)
+    current_nsecs=$(date +%N | awk '{print int($1)}')
+
     # Publish the random goal using rostopic
     rostopic pub --once /move_base_simple/goal geometry_msgs/PoseStamped \
     "{
         header: {
             seq: 0,
-            stamp: {secs: 0, nsecs: 0},
+            stamp: {secs: $current_secs, nsecs: $current_nsecs},
             frame_id: ''
         },
         pose: {
