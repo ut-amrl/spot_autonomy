@@ -19,3 +19,6 @@
 [submodule "robofleet_client"]
 	path = robofleet_client
 	url = git@github.com:ut-amrl/robofleet_client.git
+[submodule "local_rgb_map"]
+	path = local_rgb_map
+	url = git@github.com:ut-amrl/local_rgb_map.git

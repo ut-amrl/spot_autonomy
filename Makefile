@@ -6,7 +6,7 @@ build_type=Release
 
 .SILENT:
 
-all: build build/CMakeLists.txt.copy graph_navigation/bin/navigation
+all: build build/CMakeLists.txt.copy graph_navigation/bin/navigation local_rgb_map/bin/bev_node
 	$(info Build_type is [${build_type}])
 	$(info Build_mode is [${build_mode}])
 	$(MAKE) --no-print-directory -C build
@@ -15,6 +15,7 @@ all: build build/CMakeLists.txt.copy graph_navigation/bin/navigation
 clean:
 	rm -rf build bin lib
 	cd graph_navigation && rm -rf build bin lib
+	cd local_rgb_map && rm -rf build bin lib
 
 build/CMakeLists.txt.copy: build CMakeLists.txt Makefile
 	cd build && cmake -DCMAKE_BUILD_TYPE=$(build_type) ..
@@ -25,3 +26,6 @@ build:
 
 graph_navigation/bin/navigation:
 	cd graph_navigation && $(MAKE)
+
+local_rgb_map/bin/bev_node:
+	cd local_rgb_map && $(MAKE)

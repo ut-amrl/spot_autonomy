@@ -23,10 +23,18 @@
   <node name="depth_to_lidar"
       pkg="k4a_ros"
       type="$(eval 'cuda_depth_to_lidar' if cuda_dtl == 'true' else 'depth_to_lidar')"
-      args="-config_file $(find k4a_ros)/config/kinect.lua -rgb -fps 30 -resolution 1440"
+      args="-config_file $(find k4a_ros)/config/kinect.lua -rgb -imu -fps 30 -resolution 1536"
       respawn="false"
       output="screen"
       if="$(eval not barebones and not disable_depth_to_lidar)" />
+
+  <node name="bev_node"
+      pkg="local_rgb_map"
+      type="bev_node"
+      args="_image_transport:=compressed -config $(find spot_autonomy)/config/local_rgb_map/bev_node_1536.lua"
+      cwd="node"
+      respawn="false"
+      output="screen" />
 
   <node name="joystick"
       pkg="spot_autonomy"
