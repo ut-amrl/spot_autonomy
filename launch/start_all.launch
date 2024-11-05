@@ -10,6 +10,7 @@
   <arg name="disable_compress_image_side_right" default="false" />
   <arg name="disable_compress_image_back" default="false" />
   <arg name="disable_vectornav" default="false" />
+  <arg name="cuda_dtl" default="false" />  <!-- default: do not use CUDA enabled depth-to-lidar -->
 
   <!-- Start Velodyne, and 3D to 2D conversions -->
   <include file="$(find spot_autonomy)/launch/velodyne.launch" />
@@ -21,7 +22,7 @@
 
   <node name="depth_to_lidar"
       pkg="k4a_ros"
-      type="depth_to_lidar"
+      type="$(eval 'cuda_depth_to_lidar' if cuda_dtl == 'true' else 'depth_to_lidar')"
       args="-config_file $(find k4a_ros)/config/kinect.lua -rgb -fps 30 -resolution 1440"
       respawn="false"
       output="screen"
