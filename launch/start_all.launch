@@ -11,6 +11,7 @@
   <arg name="disable_compress_image_back" default="false" />
   <arg name="disable_vectornav" default="false" />
   <arg name="cuda_dtl" default="false" />  <!-- default: do not use CUDA enabled depth-to-lidar -->
+  <arg name="sterling" default="false" />  <!-- default: do not run bev and sterling -->
 
   <!-- Start Velodyne, and 3D to 2D conversions -->
   <include file="$(find spot_autonomy)/launch/velodyne.launch" />
@@ -34,6 +35,17 @@
       args="_image_transport:=compressed -config $(find spot_autonomy)/config/local_rgb_map/bev_node_1536.lua"
       cwd="node"
       respawn="false"
+      if="$(eval sterling)"
+      output="screen" />
+
+  <node name="sterling"
+      pkg="spot_autonomy"
+      type="sterling_run.py"
+      args="--model_path $(find spot_autonomy)/scripts/sterling/models/cost_model.pt"
+      cwd="node"
+      respawn="true"
+      respawn_delay="2"
+      if="$(eval sterling)"
       output="screen" />
 
   <node name="joystick"

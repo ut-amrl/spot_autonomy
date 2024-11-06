@@ -3,3 +3,5 @@ launch/start_clearpath_spot.launch
 bin
 build
 lib
+**/*.vscode
+**/*.clang-format
