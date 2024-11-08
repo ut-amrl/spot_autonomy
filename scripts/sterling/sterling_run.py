@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import numpy as np
 import torch
 import torch.nn as nn
@@ -8,6 +9,7 @@ import argparse
 import rospy
 from sensor_msgs.msg import CompressedImage
 from cv_bridge import CvBridge
+import time
 
 
 class CostNet(nn.Module):
@@ -106,7 +108,9 @@ class CostVisualizer:
             bevimage: [C, H, W]
             stride: stride of the sliding window
         """
+        print("fwd entered", int(time.time() * 1e9))
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        print(device)
         with torch.device(device):
             patches = bevimage.unfold(0, 3, 3).unfold(1, 64, stride).unfold(2, 64, stride)
             patches = patches.contiguous().view(-1, 3, 64, 64)
@@ -124,6 +128,7 @@ class CostVisualizer:
 
             cost = F.interpolate(costm.unsqueeze(0).unsqueeze(0), size=(704, 1408), mode='nearest')
             # cost = F.interpolate(costm.unsqueeze(0).unsqueeze(0), size=(704, 1408), mode='bilinear', align_corners=True)
+        print("fwd exited", int(time.time() * 1e9))
         return cost
 
 
@@ -138,9 +143,10 @@ class ImageProcessor:
         self.pub_cost = rospy.Publisher('/sterling/costmap/compressed', CompressedImage, queue_size=1)
         self.pub_stacked = rospy.Publisher('/sterling/stacked/compressed', CompressedImage, queue_size=1)
         # Subscriber
-        rospy.Subscriber('/bev/single/compressed', CompressedImage, self.callback)
+        rospy.Subscriber('/bev/single/compressed', CompressedImage, self.callback, queue_size=1)
 
     def callback(self, msg):
+        print("entered", int(time.time() * 1e9))
         try:
             # Convert compressed image to cv2 image using cv_bridge
             curr_bev_img = self.bridge.compressed_imgmsg_to_cv2(msg, desired_encoding='passthrough')
@@ -182,12 +188,13 @@ class ImageProcessor:
                 self.pub_stacked.publish(comp_msg)
         except Exception as e:
             rospy.logerr("Error processing image: {}".format(e))
+        print("exited", int(time.time() * 1e9))
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_path', type=str, default='./scripts/sterling/models/cost_model.pt')
-    args = parser.parse_args()
+    args = parser.parse_args(rospy.myargv()[1:])  # Exclude the script name
 
     rospy.init_node('sterling', anonymous=True)
     processor = ImageProcessor(model_path=args.model_path)
