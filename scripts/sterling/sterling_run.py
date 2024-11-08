@@ -10,6 +10,39 @@ import rospy
 from sensor_msgs.msg import CompressedImage
 from cv_bridge import CvBridge
 import time
+import rospy
+import time
+import rosbag
+from tqdm import tqdm
+
+
+def benchmark_time_rosbag(model_path='./scripts/sterling/models/cost_model.pt', bagfile_path='./scripts/sterling/filtered.bag', bev_topic='/bev/single/compressed', max_val=6.0):
+    costviz = CostVisualizer(model_path)
+    bagfile = rosbag.Bag(bagfile_path)
+    numframes = bagfile.get_message_count(topic_filters=[bev_topic])
+    bridge = CvBridge()
+
+    start = time.time()
+    for topic, msg, t in tqdm(bagfile.read_messages(topics=[bev_topic]), total=numframes):
+        curr_bev_img = bridge.compressed_imgmsg_to_cv2(msg, desired_encoding='passthrough')
+        curr_bev_img = cv2.cvtColor(curr_bev_img, cv2.COLOR_BGR2RGB)
+        bev_height, bev_width, _ = curr_bev_img.shape   # img size is (749, 1457, 3)
+
+        curr_bev_img = curr_bev_img[:bev_height // 64 * 64, :bev_width // 64 * 64, :]   # (11*64, 22*64, 3)
+        bevimage = curr_bev_img.copy()  # Copy for stacking later
+
+        # Preprocess image for model input
+        curr_bev_img = curr_bev_img.transpose(2, 0, 1).astype(np.float32) / 255.0
+        curr_bev_img = torch.from_numpy(curr_bev_img)
+
+        # Forward pass through the model
+        cost = costviz.forward(curr_bev_img, stride=64, img_h=bev_height // 64 * 64, img_w=bev_width // 64 * 64).squeeze(0).squeeze(0)
+        cost = cost.detach().cpu().numpy()
+        cost = (cost * 255.0 / max_val).astype(np.uint8)
+        cost = cv2.cvtColor(cost, cv2.COLOR_GRAY2RGB)
+        cost = cv2.resize(cost, (bev_width // 64 * 64, bev_height // 64 * 64))
+    end = time.time()
+    print("Time taken per frame: ", (end - start) / numframes)
 
 
 class CostNet(nn.Module):
@@ -102,15 +135,13 @@ class CostVisualizer:
         cprint('Model loaded', 'green')
 
     @torch.inference_mode()
-    def forward(self, bevimage: torch.Tensor, stride: int = 1):
+    def forward(self, bevimage: torch.Tensor, stride: int = 1, img_h: int = 704, img_w: int = 1408):
         """ 
         Args:
             bevimage: [C, H, W]
             stride: stride of the sliding window
         """
-        print("fwd entered", int(time.time() * 1e9))
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        print(device)
         with torch.device(device):
             patches = bevimage.unfold(0, 3, 3).unfold(1, 64, stride).unfold(2, 64, stride)
             patches = patches.contiguous().view(-1, 3, 64, 64)
@@ -122,13 +153,10 @@ class CostVisualizer:
             # find patches with sum of pixels == 0 and set their cost to 0
             idx = torch.sum(patches, dim=(1, 2, 3)) == 0
             cost[idx] = 0
+            costm = cost.view((img_h - 64) // stride + 1, (img_w - 64) // stride + 1)
 
-            # costm = cost.view(704//stride, 1408//stride)
-            costm = cost.view((704 - 64) // stride + 1, (1408 - 64) // stride + 1)
-
-            cost = F.interpolate(costm.unsqueeze(0).unsqueeze(0), size=(704, 1408), mode='nearest')
+            cost = F.interpolate(costm.unsqueeze(0).unsqueeze(0), size=(img_h, img_w), mode='nearest')
             # cost = F.interpolate(costm.unsqueeze(0).unsqueeze(0), size=(704, 1408), mode='bilinear', align_corners=True)
-        print("fwd exited", int(time.time() * 1e9))
         return cost
 
 
@@ -146,15 +174,12 @@ class ImageProcessor:
         rospy.Subscriber('/bev/single/compressed', CompressedImage, self.callback, queue_size=1)
 
     def callback(self, msg):
-        print("entered", int(time.time() * 1e9))
         try:
-            # Convert compressed image to cv2 image using cv_bridge
             curr_bev_img = self.bridge.compressed_imgmsg_to_cv2(msg, desired_encoding='passthrough')
-            # Convert BGR to RGB
-            curr_bev_img = cv2.cvtColor(curr_bev_img, cv2.COLOR_BGR2RGB)  # img size is (749, 1457, 3)
+            curr_bev_img = cv2.cvtColor(curr_bev_img, cv2.COLOR_BGR2RGB)
+            bev_height, bev_width, _ = curr_bev_img.shape   # img size is (749, 1457, 3)
 
-            # remove the bottom and right part of the image to get a size of (704, 1408, 3)
-            curr_bev_img = curr_bev_img[:704, :1408, :]   # (64*11, 64*22, 3)
+            curr_bev_img = curr_bev_img[:bev_height // 64 * 64, :bev_width // 64 * 64, :]   # (11*64, 22*64, 3)
             bevimage = curr_bev_img.copy()  # Copy for stacking later
 
             # Preprocess image for model input
@@ -162,11 +187,11 @@ class ImageProcessor:
             curr_bev_img = torch.from_numpy(curr_bev_img)
 
             # Forward pass through the model
-            cost = self.costviz.forward(curr_bev_img, stride=64).squeeze(0).squeeze(0)
+            cost = self.costviz.forward(curr_bev_img, stride=64, img_h=bev_height // 64 * 64, img_w=bev_width // 64 * 64).squeeze(0).squeeze(0)
             cost = cost.detach().cpu().numpy()
             cost = (cost * 255.0 / self.max_val).astype(np.uint8)
             cost = cv2.cvtColor(cost, cv2.COLOR_GRAY2RGB)
-            cost = cv2.resize(cost, (1408, 704))
+            cost = cv2.resize(cost, (bev_width // 64 * 64, bev_height // 64 * 64))
 
             # Stack original and cost images side by side
             stacked_img = np.hstack((bevimage, cost))
@@ -188,7 +213,6 @@ class ImageProcessor:
                 self.pub_stacked.publish(comp_msg)
         except Exception as e:
             rospy.logerr("Error processing image: {}".format(e))
-        print("exited", int(time.time() * 1e9))
 
 
 if __name__ == '__main__':
