@@ -3,6 +3,7 @@
   <arg name="no_intermed" default="false" />  <!-- default: use intermediate planner -->
   <arg name="dt" default="0.025" />   <!-- default: navloop dt -->
   <arg name="cmd_dt" default="0.125" />   <!-- default: time-to-live for each command sent to Spot -->
+  <arg name="joy_dt" default="0.1" />   <!-- default: max_cmd_age in joystick_driver -->
   <arg name="disable_depth_to_lidar" default="false" />
   <arg name="disable_compress_image_left" default="false" />
   <arg name="disable_compress_image_right" default="false" />
@@ -51,7 +52,7 @@
   <node name="joystick"
       pkg="spot_autonomy"
       type="joystick"
-      args="--v 2 --config $(find spot_autonomy)/config/joystick.lua"
+      args="--v 2 --config $(find spot_autonomy)/config/joystick.lua --max_cmd_age $(arg joy_dt)"
       respawn="false"
       respawn_delay="2"
       output="screen" />

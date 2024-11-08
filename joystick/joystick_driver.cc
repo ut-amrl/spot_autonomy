@@ -42,8 +42,7 @@
 
 DECLARE_int32(v);
 DEFINE_int32(idx, 0, "Joystick index");
-DEFINE_double(
-    max_cmd_age, 0.1, "Maximum permissible age of autonomous command");
+DEFINE_double(max_cmd_age, 0.1, "Maximum permissible age of autonomous command");
 
 DEFINE_string(config, "config/joystick.lua", "Config file");
 
