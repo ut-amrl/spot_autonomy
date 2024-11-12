@@ -7,5 +7,6 @@ pointcloud_to_laser = {
   height_max = 2.0;
   num_ranges = 1000;
   laser_topic = "velodyne_2dscan_highbeams";
+  ldos_laser_topic = "ldos/velodyne_2dscan_highbeams";
   pointcloud_topic = "velodyne_points";
 }

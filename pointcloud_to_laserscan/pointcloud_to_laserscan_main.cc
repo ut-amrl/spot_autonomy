@@ -70,6 +70,7 @@ float min_height_ = -FLT_MAX;
 float min_sq_range_ = 0;
 float max_sq_range_ = FLT_MAX;
 string laser_topic_ = "scan";
+string ldos_laser_topic_ = "ldos_scan";
 string pointcloud_topic_ = "pointcloud";
 
 static const Eigen::Affine3f frame_tf_ =
@@ -153,6 +154,7 @@ void LoadConfig() {
   CONFIG_FLOAT(num_ranges, "pointcloud_to_laser.num_ranges");
   CONFIG_STRING(pointcloud_topic_, "pointcloud_to_laser.pointcloud_topic");
   CONFIG_STRING(laser_topic_, "pointcloud_to_laser.laser_topic");
+  CONFIG_STRING(ldos_laser_topic_, "pointcloud_to_laser.ldos_laser_topic");
 
   config_reader::ConfigReader reader({FLAGS_config});
 
@@ -168,6 +170,7 @@ void LoadConfig() {
   min_sq_range_ = Sq(CONFIG_range_min);
   max_sq_range_ = Sq(CONFIG_range_max);
   laser_topic_ = CONFIG_laser_topic_;
+  ldos_laser_topic_ = CONFIG_ldos_laser_topic_;
   pointcloud_topic_ = CONFIG_pointcloud_topic_;
 }
 
@@ -180,7 +183,7 @@ int main(int argc, char** argv) {
   ros::Subscriber pointcloud_sub =
       n.subscribe(pointcloud_topic_, 1, &PointcloudCallback);
   scan_publisher_ = n.advertise<sensor_msgs::LaserScan>(laser_topic_, 1);
-  ldos_scan_publisher_ = n.advertise<amrl_msgs::LDOSLaserScan>('ldos/velodyne_2dscan_highbeams', 1);
+  ldos_scan_publisher_ = n.advertise<amrl_msgs::LDOSLaserScan>(ldos_laser_topic_, 1);
   ros::spin();
   return 0;
 }
