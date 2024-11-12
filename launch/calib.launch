@@ -57,6 +57,7 @@
       respawn_delay="2"
       output="screen">
   <remap from="/cmd_vel" to="/bla"/>
+  <remap from="/ldos/cmd_vel" to="/bla2"/>
   </node>
 
   <node name="websocket"
