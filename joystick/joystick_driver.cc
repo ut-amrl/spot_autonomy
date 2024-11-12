@@ -36,6 +36,7 @@
 #include "ros/ros.h"
 #include "sensor_msgs/Joy.h"
 #include "std_msgs/Bool.h"
+#include "amrl_msgs/LDOSTwist.h"
 #include "std_srvs/SetBool.h"
 #include "std_srvs/Trigger.h"
 #include "util/timer.h"
@@ -85,6 +86,7 @@ double t_last_cmd_ = 0;
 geometry_msgs::Twist last_cmd_;
 geometry_msgs::Twist manual_cmd_;
 ros::Publisher cmd_publisher_;
+ros::Publisher ldos_cmd_publisher_;
 ros::Publisher enable_autonomy_publisher_;
 ros::ServiceClient sit_service_;
 ros::ServiceClient stand_service_;
@@ -188,16 +190,27 @@ void CommandCallback(const geometry_msgs::Twist& msg) {
 void PublishCommand() {
   // Don't publish drive commands when sitting!
   if (sitting_) return;
+  amrl_msgs::LDOSTwist ldos_cmd;
+  ldos_cmd.sys_nano_time = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
   if (state_ == JoystickState::MANUAL) {
+    ldos_cmd.linear = manual_cmd_.linear;
+    ldos_cmd.angular = manual_cmd_.angular;
     cmd_publisher_.publish(manual_cmd_);
+    ldos_cmd_publisher_.publish(ldos_cmd);
   } else if (state_ == JoystickState::AUTONOMOUS) {
     const double t = GetMonotonicTime();
     if (t > t_last_cmd_ + FLAGS_max_cmd_age) {
       last_cmd_ = ZeroTwist();
     }
+    ldos_cmd.linear = last_cmd_.linear;
+    ldos_cmd.angular = last_cmd_.angular;
     cmd_publisher_.publish(last_cmd_);
+    ldos_cmd_publisher_.publish(ldos_cmd);
   } else {
+    ldos_cmd.linear = ZeroTwist().linear;
+    ldos_cmd.angular = ZeroTwist().angular;
     cmd_publisher_.publish(ZeroTwist());
+    ldos_cmd_publisher_.publish(ldos_cmd);
   }
 }
 
@@ -287,6 +300,7 @@ int main(int argc, char** argv) {
   ros::Subscriber cmd_subscriber =
       n.subscribe("navigation/cmd_vel", 10, CommandCallback);
   cmd_publisher_ = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
+  ldos_cmd_publisher_ = n.advertise<amrl_msgs::LDOSTwist>("ldos/cmd_vel", 1);
   stand_service_ = n.serviceClient<std_srvs::Trigger>("spot/stand");
   sit_service_ = n.serviceClient<std_srvs::Trigger>("spot/sit");
   enable_autonomy_publisher_ = n.advertise<std_msgs::Bool>("autonomy_arbiter/enabled", 1);

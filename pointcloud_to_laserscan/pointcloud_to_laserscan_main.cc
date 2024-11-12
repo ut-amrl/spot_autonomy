@@ -30,6 +30,7 @@
 
 #include "config_reader/config_reader.h"
 #include "sensor_msgs/LaserScan.h"
+#include "amrl_msgs/LDOSLaserScan.h"
 #include "sensor_msgs/PointCloud2.h"
 #include "sensor_msgs/point_cloud2_iterator.h"
 #include "glog/logging.h"
@@ -50,6 +51,7 @@ using ros_helpers::Eigen2DToRosPoint;
 using ros_helpers::RosPoint;
 using ros_helpers::SetRosVector;
 using sensor_msgs::LaserScan;
+using amrl_msgs::LDOSLaserScan;
 using sensor_msgs::PointCloud2;
 using std::string;
 using std::vector;
@@ -62,6 +64,7 @@ DECLARE_string(helpon);
 DECLARE_int32(v);
 
 sensor_msgs::LaserScan laser_msg_;
+amrl_msgs::LDOSLaserScan ldos_laser_msg_;
 float max_height_ = FLT_MAX;
 float min_height_ = -FLT_MAX;
 float min_sq_range_ = 0;
@@ -75,6 +78,7 @@ static const Eigen::Affine3f frame_tf_ =
 const std::string target_frame_("base_link");
 
 ros::Publisher scan_publisher_;
+ros::Publisher ldos_scan_publisher_;
 
 
 void PointcloudCallback(const sensor_msgs::PointCloud2& msg) {
@@ -121,7 +125,20 @@ void PointcloudCallback(const sensor_msgs::PointCloud2& msg) {
       r = 0;
     }
   }
+
+  ldos_laser_msg_.sys_nano_time = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+  ldos_laser_msg_.header = laser_msg_.header;
+  ldos_laser_msg_.angle_min = laser_msg_.angle_min;
+  ldos_laser_msg_.angle_max = laser_msg_.angle_max;
+  ldos_laser_msg_.angle_increment = laser_msg_.angle_increment;
+  ldos_laser_msg_.time_increment = laser_msg_.time_increment;
+  ldos_laser_msg_.scan_time = laser_msg_.scan_time;
+  ldos_laser_msg_.range_min = laser_msg_.range_min;
+  ldos_laser_msg_.range_max = laser_msg_.range_max;
+  ldos_laser_msg_.ranges = laser_msg_.ranges;
+  ldos_laser_msg_.intensities = laser_msg_.intensities;
   scan_publisher_.publish(laser_msg_);
+  ldos_scan_publisher_.publish(ldos_laser_msg_);
 }
 
 DEFINE_string(config, "config.lua", "Configuration file");
@@ -163,6 +180,7 @@ int main(int argc, char** argv) {
   ros::Subscriber pointcloud_sub =
       n.subscribe(pointcloud_topic_, 1, &PointcloudCallback);
   scan_publisher_ = n.advertise<sensor_msgs::LaserScan>(laser_topic_, 1);
+  ldos_scan_publisher_ = n.advertise<amrl_msgs::LDOSLaserScan>('ldos/velodyne_2dscan_highbeams', 1);
   ros::spin();
   return 0;
 }
