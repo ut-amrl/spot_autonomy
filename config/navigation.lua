@@ -9,7 +9,7 @@ NavigationParameters = {
   };
   ldos_laser_topic = "/ldos/velodyne_2dscan_highbeams";
   laser_frame = "base_link";
-  odom_topic = "odom"
+  odom_topic = "odom";
   ldos_odom_topic = "/spot/ldos/odometry";
   localization_topic = "localization";
   ldos_localization_topic = "/ldos/localization";
