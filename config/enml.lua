@@ -1,8 +1,10 @@
 RobotConfig = {
     name = "ut-spot";
     scan_topic = "/velodyne_2dscan_highbeams";
+    ldos_scan_topic = "/ldos/velodyne_2dscan_highbeams";
     pointcloud_topic = "";
     odometry_topic = "/odom";
+    ldos_odometry_topic = "/spot/ldos/odometry";
     initialpose_topic = "/set_pose";
   };
   
