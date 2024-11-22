@@ -13,12 +13,14 @@
   <arg name="disable_vectornav" default="false" />
   <arg name="cuda_dtl" default="false" />  <!-- default: do not use CUDA enabled depth-to-lidar -->
   <arg name="sterling" default="false" />  <!-- default: do not run bev and sterling -->
+  <arg name="adaptor_remap" default="false" />     <!-- to be used when we want to throttle communication between nodes (for third party apps) by throttling topics -->
 
   <!-- Start Velodyne, and 3D to 2D conversions -->
   <include file="$(find spot_autonomy)/launch/velodyne.launch" />
 
   <include file="$(find spot_autonomy)/launch/start_clearpath_spot.launch">
     <arg name="cmd_dt" value="$(arg cmd_dt)" />
+    <arg name="adaptor_remap" value="$(arg adaptor_remap)" />
   </include>
   <include file="$(find vectornav)/launch/vectornav.launch" if="$(eval not barebones and not disable_vectornav)" />
 
@@ -28,7 +30,9 @@
       args="-config_file $(find k4a_ros)/config/kinect.lua -rgb -imu -fps 30 -resolution 1536"
       respawn="false"
       output="screen"
-      if="$(eval not barebones and not disable_depth_to_lidar)" />
+      if="$(eval not barebones and not disable_depth_to_lidar)" >
+     <remap if="$(arg adaptor_remap)" from="/camera/rgb/image_raw/compressed" to="/adaptors/pub/depth/image" />
+  </node>
 
   <node name="bev_node"
       pkg="local_rgb_map"
@@ -79,7 +83,9 @@
      args="-robot_config $(find spot_autonomy)/config/navigation.lua --no_intermed=$(arg no_intermed) --dt=$(arg dt)"
      output="screen"
      respawn="false"
-     respawn_delay="2" />
+     respawn_delay="2" >
+     <remap if="$(arg adaptor_remap)" from="/camera/rgb/image_raw/compressed" to="/adaptors/sub/depth/image" />
+  </node>
 
   <node name="robofleet_client"
       pkg="spot_autonomy"
@@ -88,7 +94,13 @@
       ns="spot"
       output="screen"
       respawn="true"
-      respawn_delay="2" />
+      respawn_delay="2" >
+    <remap if="$(arg adaptor_remap)" from="/spot/camera/back/image/compressed" to="/adaptors/sub/cam_compressed/back" />
+    <remap if="$(arg adaptor_remap)" from="/spot/camera/left/image/compressed" to="/adaptors/sub/cam_compressed/left" />
+    <remap if="$(arg adaptor_remap)" from="/spot/camera/right/image/compressed" to="/adaptors/sub/cam_compressed/right" />
+    <remap if="$(arg adaptor_remap)" from="/spot/camera/frontleft/image/compressed" to="/adaptors/sub/cam_compressed/frontleft" />
+    <remap if="$(arg adaptor_remap)" from="/spot/camera/frontright/image/compressed" to="/adaptors/sub/cam_compressed/frontright" />
+  </node>
 
   <node name="status_translator"
       pkg="spot_autonomy"
@@ -103,7 +115,10 @@
       args="raw in:=/spot/camera/frontleft/image compressed out:=/spot/camera/frontleft/image"
       respawn="true"
       respawn_delay="2"
-      if="$(eval not barebones and not disable_compress_image_left)" />
+      if="$(eval not barebones and not disable_compress_image_left)" >
+     <remap if="$(arg adaptor_remap)" from="/spot/camera/frontleft/image" to="/adaptors/sub/camera/frontleft" />
+     <remap if="$(arg adaptor_remap)" from="/spot/camera/frontleft/image/compressed" to="/adaptors/pub/cam_compressed/frontleft" />
+  </node>
 
   <node name="compress_image_right"
       pkg="image_transport"
@@ -111,7 +126,10 @@
       args="raw in:=/spot/camera/frontright/image compressed out:=/spot/camera/frontright/image"
       respawn="true"
       respawn_delay="2"
-      if="$(eval not barebones and not disable_compress_image_right)" />
+      if="$(eval not barebones and not disable_compress_image_right)" >
+     <remap if="$(arg adaptor_remap)" from="/spot/camera/frontright/image" to="/adaptors/sub/camera/frontright" />
+     <remap if="$(arg adaptor_remap)" from="/spot/camera/frontright/image/compressed" to="/adaptors/pub/cam_compressed/frontright" />
+  </node>
 
   <node name="compress_image_side_left"
       pkg="image_transport"
@@ -119,7 +137,10 @@
       args="raw in:=/spot/camera/left/image compressed out:=/spot/camera/left/image"
       respawn="true"
       respawn_delay="2"
-      if="$(eval not barebones and not disable_compress_image_side_left)" />
+      if="$(eval not barebones and not disable_compress_image_side_left)" >
+     <remap if="$(arg adaptor_remap)" from="/spot/camera/left/image" to="/adaptors/sub/camera/left" />
+     <remap if="$(arg adaptor_remap)" from="/spot/camera/left/image/compressed" to="/adaptors/pub/cam_compressed/left" />
+  </node>
 
   <node name="compress_image_side_right"
       pkg="image_transport"
@@ -127,7 +148,10 @@
       args="raw in:=/spot/camera/right/image compressed out:=/spot/camera/right/image"
       respawn="true"
       respawn_delay="2"
-      if="$(eval not barebones and not disable_compress_image_side_right)" />
+      if="$(eval not barebones and not disable_compress_image_side_right)" >
+     <remap if="$(arg adaptor_remap)" from="/spot/camera/right/image" to="/adaptors/sub/camera/right" />
+     <remap if="$(arg adaptor_remap)" from="/spot/camera/right/image/compressed" to="/adaptors/pub/cam_compressed/right" />
+  </node>
 
   <node name="compress_image_back"
       pkg="image_transport"
@@ -135,6 +159,9 @@
       args="raw in:=/spot/camera/back/image compressed out:=/spot/camera/back/image"
       respawn="true"
       respawn_delay="2"
-      if="$(eval not barebones and not disable_compress_image_back)" />
+      if="$(eval not barebones and not disable_compress_image_back)" >
+     <remap if="$(arg adaptor_remap)" from="/spot/camera/back/image" to="/adaptors/sub/camera/back" />
+     <remap if="$(arg adaptor_remap)" from="/spot/camera/back/image/compressed" to="/adaptors/pub/cam_compressed/back" />
+  </node>
 
 </launch>
