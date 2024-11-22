@@ -40,6 +40,9 @@
 #include "std_srvs/SetBool.h"
 #include "std_srvs/Trigger.h"
 #include "util/timer.h"
+#include "std_msgs/Int32.h"
+#include "std_msgs/Float32.h"
+#include "std_msgs/String.h"
 
 DECLARE_int32(v);
 DEFINE_int32(idx, 0, "Joystick index");
@@ -47,26 +50,15 @@ DEFINE_double(max_cmd_age, 0.1, "Maximum permissible age of autonomous command")
 
 DEFINE_string(config, "config/joystick.lua", "Config file");
 
-// Non-negative values indicate whether the buttons XOR axis should be used.
-// Buttons take precedence.
-CONFIG_INT(manual_button, "Mapping.manual_button");
-CONFIG_INT(autonomous_button, "Mapping.autonomous_button");
-CONFIG_INT(manual_autonomous_axis, "Mapping.manual_autonomous_axis");
-
-// Non-negative values indicate whether the buttons XOR axis should be used.
-// Buttons take precedence.
-CONFIG_INT(sit_button, "Mapping.sit_button");
-CONFIG_INT(stand_button, "Mapping.stand_button");
-CONFIG_INT(sit_stand_axis, "Mapping.sit_stand_axis");
-
-CONFIG_INT(x_axis, "Mapping.x_axis");
-CONFIG_INT(y_axis, "Mapping.y_axis");
-CONFIG_INT(r_axis, "Mapping.r_axis");
 CONFIG_FLOAT(axis_scale, "Mapping.axis_scale");
-
-CONFIG_INT(left_bumper, "Mapping.left_bumper");
-CONFIG_INT(record_start_button, "Mapping.record_start_button");
-CONFIG_INT(record_stop_button, "Mapping.record_stop_button");
+CONFIG_INT(left_horiz_axis, "Mapping.left_horiz_axis");
+CONFIG_INT(left_vert_axis, "Mapping.left_vert_axis");
+CONFIG_INT(right_horiz_axis, "Mapping.right_horiz_axis");
+CONFIG_INT(right_vert_axis, "Mapping.right_vert_axis");
+CONFIG_INT(left_protruding_front_toggle_axis, "Mapping.left_protruding_front_toggle_axis");
+CONFIG_INT(left_black_button_axis, "Mapping.left_black_button_axis");
+CONFIG_INT(left_protruding_up_toggle_axis, "Mapping.left_protruding_up_toggle_axis");
+CONFIG_INT(left_black_button, "Mapping.left_black_button");
 
 CONFIG_STRING(rosbag_record_cmd, "record_cmd");
 
@@ -83,6 +75,7 @@ enum class JoystickState {
 
 JoystickState state_ = JoystickState::STOPPED;
 double t_last_cmd_ = 0;
+int last_left_black_button_val_ = 0;
 geometry_msgs::Twist last_cmd_;
 geometry_msgs::Twist manual_cmd_;
 ros::Publisher cmd_publisher_;
@@ -90,6 +83,8 @@ ros::Publisher ldos_cmd_publisher_;
 ros::Publisher enable_autonomy_publisher_;
 ros::ServiceClient sit_service_;
 ros::ServiceClient stand_service_;
+ros::Publisher left_black_button_value_publisher_;
+ros::Publisher ldos_manual_bad_behavior_publisher_;
 bool sitting_ = false;
 
 geometry_msgs::Twist ZeroTwist() {
@@ -118,65 +113,27 @@ void SwitchState(const JoystickState& s) {
 }
 
 void UpdateState(const vector<int32_t>& buttons, const vector<float>& axes) {
-  const bool button_mode = (CONFIG_manual_button >= 0 && CONFIG_autonomous_button >= 0);
-  const bool axis_mode = (CONFIG_manual_autonomous_axis >= 0);
-  CHECK(button_mode || axis_mode);
-
-  if (button_mode) {
-    CHECK_GT(buttons.size(), CONFIG_manual_button);
-    CHECK_GT(buttons.size(), CONFIG_autonomous_button);
-  }
-
   switch (state_) {
     case JoystickState::STOPPED: {
-      if (button_mode) {
-        if (buttons[CONFIG_manual_button] == 1) {
-          SwitchState(JoystickState::MANUAL);
-        } else {
-          int num_buttons_pressed =
-              std::accumulate(buttons.begin(), buttons.end(), 0);
-          if (num_buttons_pressed == 1 && buttons[CONFIG_autonomous_button] == 1) {
-            SwitchState(JoystickState::AUTONOMOUS);
-          }
-        }
-      } else if (axis_mode) {
-        if (axes[CONFIG_manual_autonomous_axis] < 0) {
-          SwitchState(JoystickState::MANUAL);
-        } else if (axes[CONFIG_manual_autonomous_axis] > 0) {
-          SwitchState(JoystickState::AUTONOMOUS);
-        }
+      if (axes[CONFIG_left_protruding_up_toggle_axis] < 0) {
+        SwitchState(JoystickState::MANUAL);
+      } else if (axes[CONFIG_left_protruding_up_toggle_axis] > 0) {
+        SwitchState(JoystickState::AUTONOMOUS);
       }
     } break;
     case JoystickState::MANUAL: {
-      if (button_mode) {
-        if (buttons[CONFIG_manual_button] == 0) {
-          SwitchState(JoystickState::STOPPED);
-        }
-      } else if (axis_mode) {
-        if (axes[CONFIG_manual_autonomous_axis] >= 0) {
-          SwitchState(JoystickState::STOPPED);
-        }
+      if (axes[CONFIG_left_protruding_up_toggle_axis] >= 0) {
+        SwitchState(JoystickState::STOPPED);
       }
     } break;
     case JoystickState::AUTONOMOUS: {
-      if (button_mode) {
-        for (const int32_t& b : buttons) {
-          if (b != 0) {
-            SwitchState(JoystickState::STOPPED);
-            break;
-          }
-        }
-      } else if (axis_mode) {
-        if (axes[CONFIG_manual_autonomous_axis] <= 0) {
-          SwitchState(JoystickState::STOPPED);
-        }
+      if (axes[CONFIG_left_protruding_up_toggle_axis] <= 0) {
+        SwitchState(JoystickState::STOPPED);
       }
     } break;
     default: {
       // Must never happen.
-      fprintf(stderr,
-              "ERROR: Unknown joystick state %d\n",
-              static_cast<int>(state_));
+      fprintf(stderr, "ERROR: Unknown joystick state %d\n", static_cast<int>(state_));
       exit(1);
     }
   }
@@ -220,31 +177,19 @@ float JoystickValue(float x, float scale) {
   return ((x - math_util::Sign(x) * kDeadZone) / (1.0f - kDeadZone) * scale);
 }
 
-void SetManualCommand(const vector<int32_t>& buttons,
-                      const vector<float>& axes) {
+void SetManualCommand(const vector<int32_t>& buttons, const vector<float>& axes) {
   const float kMaxLinearSpeed = 1.6;
   const float kMaxRotationSpeed = math_util::DegToRad(90);
   std_srvs::Trigger trigger_req;
-  manual_cmd_.linear.x = JoystickValue(axes[CONFIG_x_axis], CONFIG_axis_scale * kMaxLinearSpeed);
-  // The connection point of the y axis on the controller broke and it returns unstable values.
-  // Turn off y-velocity until it is fixed.
-  manual_cmd_.linear.y = JoystickValue(axes[CONFIG_y_axis], 0.0f * CONFIG_axis_scale * kMaxLinearSpeed);
-  manual_cmd_.angular.z = JoystickValue(axes[CONFIG_r_axis], CONFIG_axis_scale * kMaxRotationSpeed);
+  manual_cmd_.linear.x = JoystickValue(axes[CONFIG_right_vert_axis], CONFIG_axis_scale * kMaxLinearSpeed);
+  manual_cmd_.linear.y = JoystickValue(axes[CONFIG_right_horiz_axis], CONFIG_axis_scale * kMaxLinearSpeed);
+  manual_cmd_.angular.z = JoystickValue(axes[CONFIG_left_horiz_axis], CONFIG_axis_scale * kMaxRotationSpeed);
 
   if (state_ == JoystickState::MANUAL) {
-    const bool button_mode = (CONFIG_sit_button >= 0 && CONFIG_stand_button >= 0);
-    const bool axis_mode = (CONFIG_sit_stand_axis >= 0);
-
     bool do_sit = false;
     bool do_stand = false;
-
-    if (button_mode) {
-      do_sit = buttons[CONFIG_sit_button] != 0;
-      do_stand = buttons[CONFIG_stand_button] != 0;
-    } else if (axis_mode) {
-      do_sit = axes[CONFIG_sit_stand_axis] > 0;
-      do_stand = axes[CONFIG_sit_stand_axis] < 0;
-    }
+    do_sit = axes[CONFIG_left_protruding_front_toggle_axis] > 0;
+    do_stand = axes[CONFIG_left_protruding_front_toggle_axis] < 0;
 
     if (do_sit) {
       if (!sit_service_.call(trigger_req)) {
@@ -264,11 +209,21 @@ void SetManualCommand(const vector<int32_t>& buttons,
   }
 }
 
+void PublishLDOSManualBadBehavior(const vector<int32_t>& buttons) {
+  // if last value was 0 and now it is 1, publish sys time
+  if (last_left_black_button_val_ == 0 && buttons[CONFIG_left_black_button] == 1) {
+    std_msgs::String msg;
+    msg.data = "manual_bad_behavior @ " + std::to_string(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count());
+    ldos_manual_bad_behavior_publisher_.publish(msg);
+  }
+  last_left_black_button_val_ = (int)buttons[CONFIG_left_black_button];
+}
+
 void LoggingControls(const vector<int32_t>& buttons) {
   // See if recording should start.
-  if ((int) buttons.size() >= CONFIG_left_bumper && buttons[CONFIG_left_bumper] == 1) {
+  if ((int)buttons.size() >= CONFIG_left_black_button && buttons[CONFIG_left_black_button] == 1) {
     static bool recording = false;
-    if (recording && buttons[CONFIG_record_stop_button] == 1) {
+    if (recording && buttons[CONFIG_left_black_button] == 1) {
       recording = false;
       if (system("rosnode kill joystick_rosbag_record") != 0) {
         printf("Unable to kill rosbag!\n");
@@ -276,7 +231,7 @@ void LoggingControls(const vector<int32_t>& buttons) {
         printf("Stopped recording rosbag.\n");
       }
       Sleep(0.5);
-    } else if (!recording && buttons[CONFIG_record_start_button] == 1) {
+    } else if (!recording && buttons[CONFIG_left_black_button] == 1) {
       printf("Starting recording rosbag...\n");
       if (system(CONFIG_rosbag_record_cmd.c_str()) != 0) {
         printf("Unable to record\n");
@@ -287,6 +242,12 @@ void LoggingControls(const vector<int32_t>& buttons) {
       Sleep(0.5);
     }
   }
+}
+
+std_msgs::Int32 GetLeftBlackButtonMsg(const vector<int32_t>& buttons) {
+  std_msgs::Int32 msg;
+  msg.data = buttons[CONFIG_left_black_button];
+  return msg;
 }
 
 int main(int argc, char** argv) {
@@ -304,6 +265,8 @@ int main(int argc, char** argv) {
   stand_service_ = n.serviceClient<std_srvs::Trigger>("spot/stand");
   sit_service_ = n.serviceClient<std_srvs::Trigger>("spot/sit");
   enable_autonomy_publisher_ = n.advertise<std_msgs::Bool>("autonomy_arbiter/enabled", 1);
+  left_black_button_value_publisher_ = n.advertise<std_msgs::Int32>("left_black_button_value", 1);
+  ldos_manual_bad_behavior_publisher_ = n.advertise<std_msgs::String>("ldos/manual_bad_behavior", 1);
   Joystick joystick;
   if (!joystick.Open(FLAGS_idx)) {
     fprintf(stderr, "ERROR: Unable to open joystick)!\n");
@@ -327,7 +290,8 @@ int main(int argc, char** argv) {
     UpdateState(buttons, axes);
     SetManualCommand(buttons, axes);
     PublishCommand();
-    LoggingControls(buttons);
+    // LoggingControls(buttons);
+    PublishLDOSManualBadBehavior(buttons);
     msg.header.stamp = ros::Time::now();
     msg.axes = axes;
     msg.buttons = buttons;
@@ -338,6 +302,7 @@ int main(int argc, char** argv) {
       enable_autonomy_msg.data = false;
     }
     enable_autonomy_publisher_.publish(enable_autonomy_msg);
+    left_black_button_value_publisher_.publish(GetLeftBlackButtonMsg(buttons));
     ros::spinOnce();
     rate_loop.Sleep();
   }

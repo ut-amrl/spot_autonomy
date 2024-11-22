@@ -1,3 +1,14 @@
+-- DO NOT CHANGE (these are mappings for the spektrum dxs controller)
+LEFT_HORIZ_AXIS = 0;
+LEFT_VERT_AXIS = 1;
+RIGHT_HORIZ_AXIS = 2;
+RIGHT_VERT_AXIS = 3;
+LEFT_PROTRUDING_FRONT_TOGGLE_AXIS = 4;
+LEFT_BLACK_BUTTON_AXIS = 5;
+LEFT_PROTRUDING_UP_TOGGLE_AXIS = 6;
+LEFT_BLACK_BUTTON = 0;
+LEFT_PROTRUDING_UP_TOGGLE_BUTTON = 1;
+
 record_cmd = "rosbag record /status /velodyne_points /scan /imu/data /jackal_velocity_controller/odom /gps/fix /gps/vel /imu/data_raw /tf /localization /move_base_simple/goal /navigation/cmd_vel /set_nav_target /set_pose"..
     " /image_raw/compressed "..
     " /joint_states"..
@@ -72,22 +83,15 @@ Right Side:
 Four Trim Sliders: adjust zero point of joysticks
     Higher-pitch chirp at neutral zero point.
 --]]
-    manual_button = -1;
-    autonomous_button = -1;
-    manual_autonomous_axis = 6;
-
-    sit_button = -1;
-    stand_button = -1;
-    sit_stand_axis = 4;
-
-    x_axis = 3;
-    y_axis = 2;
-    r_axis = 0;
     axis_scale = 32768 / 23638;
-
-    left_bumper = 0;
-    record_start_button = 0;
-    record_stop_button = 0;
+    left_horiz_axis = LEFT_HORIZ_AXIS;
+    left_vert_axis = LEFT_VERT_AXIS;
+    right_horiz_axis = RIGHT_HORIZ_AXIS;
+    right_vert_axis = RIGHT_VERT_AXIS;
+    left_protruding_front_toggle_axis = LEFT_PROTRUDING_FRONT_TOGGLE_AXIS;
+    left_black_button_axis = LEFT_BLACK_BUTTON_AXIS;
+    left_protruding_up_toggle_axis = LEFT_PROTRUDING_UP_TOGGLE_AXIS;
+    left_black_button = LEFT_BLACK_BUTTON;
 };
 
 Mapping = SpektrumDxsMapping;
