@@ -13,6 +13,7 @@
   <arg name="disable_vectornav" default="false" />
   <arg name="cuda_dtl" default="false" />  <!-- default: do not use CUDA enabled depth-to-lidar -->
   <arg name="sterling" default="false" />  <!-- default: do not run bev and sterling -->
+  <arg name="lidarmode" default="lidar" />  <!-- default: use both lidar and cam, options: cam|lidar|both -->
 
   <!-- Start Velodyne, and 3D to 2D conversions -->
   <include file="$(find spot_autonomy)/launch/velodyne.launch" />
