@@ -22,3 +22,9 @@
 [submodule "local_rgb_map"]
 	path = local_rgb_map
 	url = git@github.com:ut-amrl/local_rgb_map.git
+[submodule "scripts/repos/gsam"]
+	path = scripts/repos/gsam
+	url = git@github.com:sadanand1120/Grounded-Segment-Anything.git
+[submodule "scripts/repos/depthany2"]
+	path = scripts/repos/depthany2
+	url = git@github.com:sadanand1120/Depth-Anything-V2.git
