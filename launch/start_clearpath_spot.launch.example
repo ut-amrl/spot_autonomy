@@ -3,6 +3,7 @@
   <arg name="password" default="PASSWORD" />
   <arg name="hostname" default="192.168.50.3" />
   <arg name="cmd_dt" default="0.125" />
+  <arg name="adaptor_remap" default="false" />
 
   <!-- <include file="$(find spot_description)/launch/description.launch" />
   <include file="$(find spot_driver)/launch/control.launch" /> -->
@@ -17,6 +18,11 @@
     <remap from="tf" to="/tf"/>
     <remap from="/spot/cmd_vel" to="/cmd_vel"/>
     <remap from="/spot/odometry" to="/odom"/>
+    <remap if="$(arg adaptor_remap)" from="/spot/camera/back/image" to="/adaptors/pub/camera/back" />
+    <remap if="$(arg adaptor_remap)" from="/spot/camera/left/image" to="/adaptors/pub/camera/left" />
+    <remap if="$(arg adaptor_remap)" from="/spot/camera/right/image" to="/adaptors/pub/camera/right" />
+    <remap if="$(arg adaptor_remap)" from="/spot/camera/frontleft/image" to="/adaptors/pub/camera/frontleft" />
+    <remap if="$(arg adaptor_remap)" from="/spot/camera/frontright/image" to="/adaptors/pub/camera/frontright" />
   </node>
 
   <!-- <node pkg="twist_mux" type="twist_mux" name="twist_mux" >
