@@ -183,6 +183,6 @@ if __name__ == "__main__":
     print("Testing Depth")
     cv2_img = cv2.imread(image_path)
     dd = depth(cv2_img)
-    cv2.imshow("Depth", dd)
+    cv2.imshow("Depth", (dd * 4000).astype(np.uint16))  # for better vis, multiply by 4000
     cv2.waitKey(0)
     cv2.destroyAllWindows()
