@@ -6,21 +6,21 @@ depth_image_topic = "camera/depth/image_raw";
 rgb_image_frame = "kinect_color";
 depth_image_frame = "kinect_depth";
 scan_frame = "base_link";
-scan_topic = "kinect_scan";
+scan_topic = "kinect_laserscan";
 imu_topic = "kinect_imu";
 imu_frame = "kinect_imu";
 registered_rgbd = true;
 
 rotation = {
   yaw = 0;
-  pitch = 15;
+  pitch = 10;
   roll = 0;
 };
 
 translation = {
-  x = 0;
+  x = .33;
   y = 0;
-  z = .46;
+  z = .65;
 };
 
 skip_points = 10;

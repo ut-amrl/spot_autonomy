@@ -39,9 +39,9 @@ BEVParameters = {
     cv_num_threads = 2;
 
     T_ground_camera = {
-        x = 0.36;
+        x = 0.33;
         y = 0.0;
-        z = 0.09 + 0.575; -- spot to camera + spot to ground
-        pitch = deg2rad(17.0);
+        z = 0.65;
+        pitch = deg2rad(10.0);
     };
 }
