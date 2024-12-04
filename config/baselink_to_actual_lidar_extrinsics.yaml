@@ -1,0 +1,15 @@
+# Distances in cms, angles in degrees
+# This is the transformation from baselink to actual lidar on spot
+T1:
+  Trans1:
+    X: -2.8
+    Y: -1.5
+    Z: 87
+T2:
+  # Extrinsic (space-fixed) rotation
+  Rot1:
+    axis: "Y"
+    alpha: -1.3
+  Rot2:
+    axis: "Z"
+    alpha: 3.3

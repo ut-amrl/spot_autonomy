@@ -14,10 +14,13 @@
   <arg name="cuda_dtl" default="false" />  <!-- default: do not use CUDA enabled depth-to-lidar -->
   <arg name="sterling" default="false" />  <!-- default: do not run bev and sterling -->
   <arg name="adaptor_remap" default="false" />     <!-- to be used when we want to throttle communication between nodes (for third party apps) by throttling topics -->
-  <arg name="lidarmode" default="lidar" />  <!-- default: use both lidar and cam, options: cam|lidar|both -->
+  <arg name="lidarmode" default="lidar" />  <!-- options: lidar|cam|model -->
+  <arg name="device_camdepth" default="cuda" />  <!-- options: cuda|cpu -->
 
   <!-- Start Velodyne, and 3D to 2D conversions -->
-  <include file="$(find spot_autonomy)/launch/velodyne.launch" />
+  <include file="$(find spot_autonomy)/launch/velodyne.launch">
+    <arg name="lidarmode" value="$(arg lidarmode)" />
+  </include>
 
   <include file="$(find spot_autonomy)/launch/start_clearpath_spot.launch">
     <arg name="cmd_dt" value="$(arg cmd_dt)" />
@@ -54,6 +57,16 @@
       if="$(eval sterling)"
       output="screen" />
 
+  <node name="camdepth"
+      pkg="spot_autonomy"
+      type="depth_pc_pub.py"
+      args="--mode $(arg lidarmode) --device $(arg device_camdepth)"
+      cwd="node"
+      respawn="true"
+      respawn_delay="2"
+      if="$(eval lidarmode == 'cam' or lidarmode == 'model')"
+      output="screen" />
+
   <node name="joystick"
       pkg="spot_autonomy"
       type="joystick"
@@ -86,8 +99,6 @@
      respawn="false"
      respawn_delay="2" >
      <remap if="$(arg adaptor_remap)" from="/camera/rgb/image_raw/compressed" to="/adaptors/sub/depth/image" />
-     <remap if="$(eval arg('lidarmode') == 'cam')" from="/velodyne_2dscan_highbeams" to="/nav_bla_laser" />
-     <remap if="$(eval arg('lidarmode') == 'lidar')" from="/kinect_laserscan" to="/nav_bla_laser" />
   </node>
 
   <node name="robofleet_client"
