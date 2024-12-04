@@ -13,10 +13,13 @@
   <arg name="disable_vectornav" default="false" />
   <arg name="cuda_dtl" default="false" />  <!-- default: do not use CUDA enabled depth-to-lidar -->
   <arg name="sterling" default="false" />  <!-- default: do not run bev and sterling -->
-  <arg name="lidarmode" default="lidar" />  <!-- default: use both lidar and cam, options: cam|lidar|both -->
+  <arg name="lidarmode" default="lidar" />  <!-- options: lidar|cam|model -->
+  <arg name="device_camdepth" default="cuda" />  <!-- options: cuda|cpu -->
 
   <!-- Start Velodyne, and 3D to 2D conversions -->
-  <include file="$(find spot_autonomy)/launch/velodyne.launch" />
+  <include file="$(find spot_autonomy)/launch/velodyne.launch">
+    <arg name="lidarmode" value="$(arg lidarmode)" />
+  </include>
 
   <include file="$(find spot_autonomy)/launch/start_clearpath_spot.launch">
     <arg name="cmd_dt" value="$(arg cmd_dt)" />
@@ -48,6 +51,16 @@
       respawn="true"
       respawn_delay="2"
       if="$(eval sterling)"
+      output="screen" />
+
+  <node name="camdepth"
+      pkg="spot_autonomy"
+      type="depth_pc_pub.py"
+      args="--mode $(arg lidarmode) --device $(arg device_camdepth)"
+      cwd="node"
+      respawn="true"
+      respawn_delay="2"
+      if="$(eval lidarmode == 'cam' or lidarmode == 'model')"
       output="screen" />
 
   <node name="joystick"
