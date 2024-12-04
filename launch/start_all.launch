@@ -99,6 +99,7 @@
      respawn="false"
      respawn_delay="2" >
      <remap if="$(arg adaptor_remap)" from="/camera/rgb/image_raw/compressed" to="/adaptors/sub/depth/image" />
+     <remap if="$(eval lidarmode == 'cam' or lidarmode == 'model')" from="/velodyne_2dscan_highbeams" to="/camdepth_scan" />
   </node>
 
   <node name="robofleet_client"

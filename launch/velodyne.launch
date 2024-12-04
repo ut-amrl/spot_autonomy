@@ -65,7 +65,17 @@
       args="--config $(find spot_autonomy)/config/highbeams.lua"
       respawn="true"
       respawn_delay="2">
+  </node>
+
+  <node pkg="spot_autonomy"
+      type="pointcloud_to_laserscan"
+      name="pointcloud_to_laserscan_highbeams_camdepth"
+      args="--config $(find spot_autonomy)/config/highbeams.lua"
+      respawn="true"
+      if="$(eval lidarmode == 'cam' or lidarmode == 'model')"
+      respawn_delay="2">
       <remap if="$(eval lidarmode == 'cam' or lidarmode == 'model')" from="/velodyne_points" to="/camdepth_points" />
+      <remap if="$(eval lidarmode == 'cam' or lidarmode == 'model')" from="/velodyne_2dscan_highbeams" to="/camdepth_scan" />
   </node>
 
 </launch>
