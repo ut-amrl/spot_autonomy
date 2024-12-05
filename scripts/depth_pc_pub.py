@@ -36,7 +36,7 @@ class ImageDepthLidar:
         self.latest_depth_img_cv2_np = None
         self.latest_rgb_img_cv2_np = None
         rospy.Subscriber(depth_image_topic, CompressedImage, self.depth_callback, queue_size=1)
-        rospy.Subscriber(rgb_image_topic, CompressedImage, self.rgb_callback, queue_size=1)
+        rospy.Subscriber(rgb_image_topic, Image, self.rgb_callback, queue_size=1)
         self.pc_pub = rospy.Publisher(point_cloud_topic, PointCloud2, queue_size=1)
         rospy.Timer(rospy.Duration(1 / 10), lambda event: self.main(self.latest_depth_img_cv2_np, self.latest_rgb_img_cv2_np))
 
@@ -71,6 +71,10 @@ class ImageDepthLidar:
             else:
                 raise ValueError("Invalid mode")
 
+            scale_default = 0.6 if self.MODE == "model" else 10
+            SCALE = rospy.get_param("/SCALE", scale_default)
+            depth_arr = SCALE * depth_arr
+
             kinect_points = ImageDepthLidar.depth2points(depth_arr, self.cam_intrinsics_dict)
             lidar_points = self.project_points_kinect_to_lidar(kinect_points)
 
@@ -86,7 +90,7 @@ class ImageDepthLidar:
         self.pc_pub.publish(ros_pcd)
 
     def rgb_callback(self, msg):
-        self.latest_rgb_img_cv2_np = self.cv_bridge.compressed_imgmsg_to_cv2(msg, desired_encoding="passthrough")
+        self.latest_rgb_img_cv2_np = self.cv_bridge.imgmsg_to_cv2(msg, desired_encoding="passthrough")
 
     def depth_callback(self, msg):
         self.latest_depth_img_cv2_np = np.asarray(self.cv_bridge.compressed_imgmsg_to_cv2(msg, desired_encoding="passthrough"), dtype=np.float32).squeeze() / 1000
@@ -245,7 +249,7 @@ if __name__ == "__main__":
         cam_extrinsics_filepath="../config/baselink_to_kinect_extrinsics.yaml",
         lidar_actual_extrinsics_filepath="../config/baselink_to_actual_lidar_extrinsics.yaml",
         depth_image_topic="/camera/depth/image_raw/compressed",
-        rgb_image_topic="/camera/rgb/image_raw/compressed",
+        rgb_image_topic="/camera/rgb/image_raw",
         point_cloud_topic="/camdepth_points",
         mode=args.mode,
         device=args.device
