@@ -58,7 +58,7 @@ class ImageDepthLidar:
     @torch.inference_mode()
     def main(self, depth_img, rgb_img, event=None):
         with torch.device(self.DEVICE):
-            if self.MODE == "depth":
+            if self.MODE == "cam":
                 if depth_img is None:
                     return
                 depth_arr = depth_img
@@ -235,7 +235,7 @@ class ImageDepthLidar:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--mode', type=str, default='model', help='mode: model or depth')
+    parser.add_argument('--mode', type=str, default='model', help='mode: model or cam')
     parser.add_argument('--device', type=str, default=None, help='device: cuda or cpu')
     args = parser.parse_args(rospy.myargv()[1:])  # Exclude the script name
 
