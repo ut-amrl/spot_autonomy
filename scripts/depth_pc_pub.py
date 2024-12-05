@@ -35,7 +35,7 @@ class ImageDepthLidar:
         self.cv_bridge = CvBridge()
         self.latest_depth_img_cv2_np = None
         self.latest_rgb_img_cv2_np = None
-        rospy.Subscriber(depth_image_topic, Image, self.depth_callback, queue_size=1)
+        rospy.Subscriber(depth_image_topic, CompressedImage, self.depth_callback, queue_size=1)
         rospy.Subscriber(rgb_image_topic, CompressedImage, self.rgb_callback, queue_size=1)
         self.pc_pub = rospy.Publisher(point_cloud_topic, PointCloud2, queue_size=1)
         rospy.Timer(rospy.Duration(1 / 10), lambda event: self.main(self.latest_depth_img_cv2_np, self.latest_rgb_img_cv2_np))
@@ -89,7 +89,7 @@ class ImageDepthLidar:
         self.latest_rgb_img_cv2_np = self.cv_bridge.compressed_imgmsg_to_cv2(msg, desired_encoding="passthrough")
 
     def depth_callback(self, msg):
-        self.latest_depth_img_cv2_np = np.asarray(self.cv_bridge.imgmsg_to_cv2(msg, desired_encoding="passthrough"), dtype=np.float32).squeeze() / 1000
+        self.latest_depth_img_cv2_np = np.asarray(self.cv_bridge.compressed_imgmsg_to_cv2(msg, desired_encoding="passthrough"), dtype=np.float32).squeeze() / 1000
         assert self.latest_depth_img_cv2_np.ndim == 2
 
     def load_params(self):
@@ -244,7 +244,7 @@ if __name__ == "__main__":
         cam_intrinsics_filepath="../config/cam_intrinsics_1536.yaml",
         cam_extrinsics_filepath="../config/baselink_to_kinect_extrinsics.yaml",
         lidar_actual_extrinsics_filepath="../config/baselink_to_actual_lidar_extrinsics.yaml",
-        depth_image_topic="/camera/depth/image_raw",
+        depth_image_topic="/camera/depth/image_raw/compressed",
         rgb_image_topic="/camera/rgb/image_raw/compressed",
         point_cloud_topic="/camdepth_points",
         mode=args.mode,
