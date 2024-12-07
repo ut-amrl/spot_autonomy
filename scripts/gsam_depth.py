@@ -25,7 +25,7 @@ class FastGSAM:
         self.GROUNDING_DINO_CHECKPOINT_PATH = "repos/gsam/weights/groundingdino_swint_ogc.pth"
         self.grounding_dino_model = Model(model_config_path=self.GROUNDING_DINO_CONFIG_PATH, model_checkpoint_path=self.GROUNDING_DINO_CHECKPOINT_PATH, device=self.DEVICE)
         self.SAM_ENCODER_VERSION = "vit_h"
-        self.SAM_CHECKPOINT_PATH = "repos/gsam/weights/sam_hq_vit_h.pth"
+        self.SAM_CHECKPOINT_PATH = "repos/gsam/weights/sam_hq_vit_tiny.pth"
         self.sam = sam_hq_model_registry[self.SAM_ENCODER_VERSION](checkpoint=self.SAM_CHECKPOINT_PATH)
         self.sam.to(device=self.DEVICE)
         self.sam_predictor = SamPredictor(self.sam)
@@ -164,7 +164,7 @@ def depth(image: cv2.imread):
         'vitl': {'encoder': 'vitl', 'features': 256, 'out_channels': [256, 512, 1024, 1024]}
     }
 
-    encoder = 'vitl'  # or 'vits', 'vitb'
+    encoder = 'vits'  # or 'vits', 'vitb', 'vitl'
     dataset = 'hypersim'  # 'hypersim' for indoor model, 'vkitti' for outdoor model
     max_depth = 20  # 20 for indoor model, 80 for outdoor model
 
