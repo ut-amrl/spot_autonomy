@@ -14,8 +14,13 @@ GSAM = None
 
 
 class FastGSAM:
-    def __init__(self, box_threshold=0.25, text_threshold=0.25, nms_threshold=0.6, ann_thickness=2, ann_text_scale=0.3, ann_text_thickness=1, ann_text_padding=5):
-        self.DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    def __init__(self, box_threshold=0.25, text_threshold=0.25, nms_threshold=0.6, ann_thickness=2, ann_text_scale=0.3, ann_text_thickness=1, ann_text_padding=5, device='cpu'):
+        if device is not None:
+            self.DEVICE = torch.device(device)
+        else:
+            self.DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        if self.DEVICE == 'cuda':
+            assert torch.cuda.is_available()
         self.GROUNDING_DINO_CONFIG_PATH = "repos/gsam/GroundingDINO/groundingdino/config/GroundingDINO_SwinT_OGC.py"
         self.GROUNDING_DINO_CHECKPOINT_PATH = "repos/gsam/weights/groundingdino_swint_ogc.pth"
         self.grounding_dino_model = Model(model_config_path=self.GROUNDING_DINO_CONFIG_PATH, model_checkpoint_path=self.GROUNDING_DINO_CHECKPOINT_PATH, device=self.DEVICE)
