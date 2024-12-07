@@ -47,7 +47,7 @@ class ImageDepthLidar:
             'vitl': {'encoder': 'vitl', 'features': 256, 'out_channels': [256, 512, 1024, 1024]}
         }
 
-        encoder = 'vitl'  # or 'vits', 'vitb'
+        encoder = 'vits'  # or 'vits', 'vitb', 'vitl'
         dataset = 'hypersim'  # 'hypersim' for indoor model, 'vkitti' for outdoor model
         max_depth = 20  # 20 for indoor model, 80 for outdoor model
         self.depth_model = DepthAnythingV2(**{**model_configs[encoder], 'max_depth': max_depth})
