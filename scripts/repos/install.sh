@@ -17,6 +17,7 @@ mkdir -p weights/
 cd weights/
 wget https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth -O groundingdino_swint_ogc.pth
 wget https://huggingface.co/lkeab/hq-sam/resolve/main/sam_hq_vit_h.pth -O sam_hq_vit_h.pth
+wget https://huggingface.co/lkeab/hq-sam/resolve/main/sam_hq_vit_b.pth -O sam_hq_vit_b.pth
 wget https://huggingface.co/lkeab/hq-sam/resolve/main/sam_hq_vit_tiny.pth -O sam_hq_vit_tiny.pth
 cd ../..
 

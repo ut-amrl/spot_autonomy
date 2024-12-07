@@ -24,8 +24,8 @@ class FastGSAM:
         self.GROUNDING_DINO_CONFIG_PATH = "repos/gsam/GroundingDINO/groundingdino/config/GroundingDINO_SwinT_OGC.py"
         self.GROUNDING_DINO_CHECKPOINT_PATH = "repos/gsam/weights/groundingdino_swint_ogc.pth"
         self.grounding_dino_model = Model(model_config_path=self.GROUNDING_DINO_CONFIG_PATH, model_checkpoint_path=self.GROUNDING_DINO_CHECKPOINT_PATH, device=self.DEVICE)
-        self.SAM_ENCODER_VERSION = "vit_h"
-        self.SAM_CHECKPOINT_PATH = "repos/gsam/weights/sam_hq_vit_tiny.pth"
+        self.SAM_ENCODER_VERSION = "vit_b"
+        self.SAM_CHECKPOINT_PATH = "repos/gsam/weights/sam_hq_vit_b.pth"
         self.sam = sam_hq_model_registry[self.SAM_ENCODER_VERSION](checkpoint=self.SAM_CHECKPOINT_PATH)
         self.sam.to(device=self.DEVICE)
         self.sam_predictor = SamPredictor(self.sam)
