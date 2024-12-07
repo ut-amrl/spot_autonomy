@@ -15,6 +15,7 @@
   <arg name="sterling" default="false" />  <!-- default: do not run bev and sterling -->
   <arg name="lidarmode" default="lidar" />  <!-- options: lidar|cam|model -->
   <arg name="device_camdepth" default="cuda" />  <!-- options: cuda|cpu -->
+  <arg name="gsam" default="true" />
 
   <!-- Start Velodyne, and 3D to 2D conversions -->
   <include file="$(find spot_autonomy)/launch/velodyne.launch">
@@ -61,6 +62,15 @@
       respawn="true"
       respawn_delay="2"
       if="$(eval lidarmode == 'cam' or lidarmode == 'model')"
+      output="screen" />
+
+  <node name="gsam"
+      pkg="spot_autonomy"
+      type="gsam_ros_node.py"
+      cwd="node"
+      respawn="true"
+      respawn_delay="2"
+      if="$(eval gsam)"
       output="screen" />
 
   <node name="joystick"
