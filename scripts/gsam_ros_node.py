@@ -8,11 +8,12 @@ from cv_bridge import CvBridge
 
 import std_msgs
 from sensor_msgs.msg import Image
+from std_msgs.msg import String
 
 from gsam_depth import FastGSAM
 
 class ImageGSAM:
-    def __init__(self, rgb_image_topic: str, output_topic: str, device: str = None, classes = ['door']):
+    def __init__(self, rgb_image_topic: str, output_topic: str, device: str = None):
         if device is not None:
             self.DEVICE = torch.device(device)
         else:
@@ -20,7 +21,7 @@ class ImageGSAM:
         if self.DEVICE == 'cuda':
             assert torch.cuda.is_available(), f"You asked for device=cuda, but it aint available"
         self.setup_model()
-        self.classes = classes
+        rospy.set_param('~gsam_classes', 'door')
 
         self.cv_bridge = CvBridge()
         self.latest_rgb_img_cv2_np = None
@@ -33,14 +34,17 @@ class ImageGSAM:
 
     @torch.inference_mode()
     def main(self, rgb_img, event=None):
+        classes = rospy.get_param('~gsam_classes', 'door,chair')
+        classes = classes.split(',')
         start_time = time.time()
-        ann_img, detections, per_class_mask = self.gsam_model.predict_and_segment_on_image(img=rgb_img, text_prompts=self.classes)
-        end_time = time.tim()
-        print("GSAM time:", end_time - start_time)
+        ann_img, detections, per_class_mask = self.gsam_model.predict_and_segment_on_image(img=rgb_img, text_prompts=classes)
+        end_time = time.time()
+        print(f"GSAM time: {end_time - start_time}, classes: {classes}")
 	# self.ann_pub.publish(ros_pcd)
 
     def rgb_callback(self, msg):
-        self.latest_rgb_img_cv2_np = self.cv_bridge.imgmsg_to_cv2(msg, desired_encoding="passthrough")
+        self.latest_rgb_img_cv2_np = self.cv_bridge.imgmsg_to_cv2(msg, desired_encoding="passthrough")[:,:,:3]
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -51,8 +55,7 @@ if __name__ == "__main__":
     e = ImageGSAM(
         rgb_image_topic="/camera/rgb/image_raw",
         output_topic="/gsam_output",
-        device=args.device,
-        classes=['door']
+        device=args.device
     )
     time.sleep(1)
     try:
