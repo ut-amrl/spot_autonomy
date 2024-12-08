@@ -16,6 +16,7 @@
   <arg name="laserscan_ring" default="-1" />
   <arg name="laserscan_resolution" default="0.007" />
   <arg name="organize_cloud" default="false" />
+  <arg name="adaptor_remap" default="false" />
 
   <!-- start nodelet manager and driver nodelets -->
   <include file="$(find velodyne_driver)/launch/nodelet_manager.launch">
@@ -57,7 +58,9 @@
   <node pkg="tf"
       type="static_transform_publisher"
       name="velodyne_tf_broadcaster"
-      args="0 0 0.85 0 0 0 1 base_link velodyne 20" />
+      args="0 0 0.85 0 0 0 1 base_link velodyne 20">
+      <remap if='$(arg adaptor_remap)' from='/tf' to='/adaptors/pub/velodyne_tf_broadcaster/tf' />
+  </node>
 
   <node pkg="spot_autonomy"
       type="pointcloud_to_laserscan"
@@ -65,6 +68,9 @@
       args="--config $(find spot_autonomy)/config/highbeams.lua"
       respawn="true"
       respawn_delay="2">
+      	<remap if='$(arg adaptor_remap)' from='/ldos/velodyne_2dscan_highbeams' to='/adaptors/pub/pointcloud_to_laserscan_highbeams/ldos/velodyne_2dscan_highbeams' />
+        <remap if='$(arg adaptor_remap)' from='/velodyne_2dscan_highbeams' to='/adaptors/pub/pointcloud_to_laserscan_highbeams/velodyne_2dscan_highbeams' />
+        <remap if='$(arg adaptor_remap)' from='/velodyne_points' to='/adaptors/sub/pointcloud_to_laserscan_highbeams/velodyne_points' />
   </node>
 
   <node pkg="spot_autonomy"

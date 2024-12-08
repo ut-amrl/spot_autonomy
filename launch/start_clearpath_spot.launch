@@ -1,0 +1,54 @@
+<launch>
+  <arg name="username" default="amrl_user" />
+  <arg name="password" default="7DigitPrecision!" />
+  <arg name="hostname" default="192.168.50.3" />
+  <arg name="cmd_dt" default="0.125" />
+  <arg name="adaptor_remap" default="false" />
+
+  <!-- <include file="$(find spot_description)/launch/description.launch" />
+  <include file="$(find spot_driver)/launch/control.launch" /> -->
+
+  <node pkg="spot_driver" type="spot_ros" name="spot_ros"  ns="spot" output="screen" if="$(eval not adaptor_remap)">
+    <rosparam file="$(find spot_autonomy)/config/clearpath_spot_config.yaml" command="load" />
+    <param name="username" value="$(arg username)" />
+    <param name="password" value="$(arg password)" />
+    <param name="hostname" value="$(arg hostname)" />
+    <param name="cmd_dt" value="$(arg cmd_dt)" />
+    
+    <remap from="joint_states" to="/joint_states"/>
+    <remap from="tf" to="/tf"/>
+    <remap from="/spot/cmd_vel" to="/cmd_vel"/>
+    <remap from="/spot/odometry" to="/odom"/>
+  </node>
+
+  <node pkg="spot_driver" type="spot_ros" name="spot_ros"  ns="spot" output="screen" if="$(eval adaptor_remap)">
+    <rosparam file="$(find spot_autonomy)/config/clearpath_spot_config.yaml" command="load" />
+    <param name="username" value="$(arg username)" />
+    <param name="password" value="$(arg password)" />
+    <param name="hostname" value="$(arg hostname)" />
+    <param name="cmd_dt" value="$(arg cmd_dt)" />
+    
+    <remap from="joint_states" to="/joint_states"/>    
+    <remap if='$(arg adaptor_remap)' from='/spot/cmd_vel' to='/adaptors/sub/spot__spot_ros/cmd_vel' />
+    <remap if='$(arg adaptor_remap)' from='/ldos/cmd_vel' to='/adaptors/sub/spot__spot_ros/ldos/cmd_vel' />
+    <remap if='$(arg adaptor_remap)' from='/spot/odometry' to='/adaptors/pub/spot__spot_ros/odom' />
+    <remap if='$(arg adaptor_remap)' from='/spot/camera/back/image' to='/adaptors/pub/spot__spot_ros/spot/camera/back/image' />
+    <remap if='$(arg adaptor_remap)' from='/spot/camera/frontleft/image' to='/adaptors/pub/spot__spot_ros/spot/camera/frontleft/image' />
+    <remap if='$(arg adaptor_remap)' from='/spot/camera/frontright/image' to='/adaptors/pub/spot__spot_ros/spot/camera/frontright/image' />
+    <remap if='$(arg adaptor_remap)' from='/spot/camera/left/image' to='/adaptors/pub/spot__spot_ros/spot/camera/left/image' />
+    <remap if='$(arg adaptor_remap)' from='/spot/camera/right/image' to='/adaptors/pub/spot__spot_ros/spot/camera/right/image' />
+    <remap if='$(arg adaptor_remap)' from='/spot/ldos/odometry' to='/adaptors/pub/spot__spot_ros/spot/ldos/odometry' />
+    <remap if='$(arg adaptor_remap)' from='/spot/status/power_state' to='/adaptors/pub/spot__spot_ros/spot/status/power_state' />
+    <remap if='$(arg adaptor_remap)' from='tf' to='/adaptors/pub/spot__spot_ros/tf' />
+    <remap if='$(arg adaptor_remap)' from='/tf_static' to='/adaptors/pub/spot__spot_ros/tf_static' />
+  </node>
+
+
+
+
+  <!-- <node pkg="twist_mux" type="twist_mux" name="twist_mux" >
+    <rosparam command="load" file="$(find spot_driver)/config/twist_mux.yaml" />
+    <remap from="cmd_vel_out" to="spot/cmd_vel"/>
+  </node> -->
+
+</launch>
