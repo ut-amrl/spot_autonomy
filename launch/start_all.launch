@@ -1,6 +1,7 @@
 <launch>
   <arg name="barebones" default="false" />  <!-- default: use full stack nodes -->
   <arg name="no_intermed" default="true" />  <!-- default: use intermediate planner -->
+  <arg name="ldos_pub_overlay_carrot" default="false" />  <!-- default: do not publish carrot overlay -->
   <arg name="dt" default="0.025" />   <!-- default: navloop dt -->
   <arg name="cmd_dt" default="0.125" />   <!-- default: time-to-live for each command sent to Spot -->
   <arg name="joy_dt" default="0.1" />   <!-- default: max_cmd_age in joystick_driver -->
@@ -102,7 +103,7 @@
  <node name="navigation"
      pkg="graph_navigation"
      type="navigation"
-     args="-robot_config $(find spot_autonomy)/config/navigation.lua --no_intermed=$(arg no_intermed) --dt=$(arg dt)"
+     args="-robot_config $(find spot_autonomy)/config/navigation.lua --no_intermed=$(arg no_intermed) --dt=$(arg dt) --ldos_pub_overlay_carrot=$(arg ldos_pub_overlay_carrot)"
      output="screen"
      respawn="false"
      respawn_delay="2" />
