@@ -26,7 +26,7 @@ class ImageGSAM:
         if self.DEVICE == 'cuda':
             assert torch.cuda.is_available(), f"You asked for device=cuda, but it aint available"
         
-        self.latest_rgb_img_cv2_np = torch.rand(1, 3, 2560, 1440)
+        self.latest_rgb_img_cv2_np = torch.rand(1536, 2048, 3) # this is the size of images received from Kinect
         self.use_threading = use_threading
         
         self.data_lock = threading.Lock()
@@ -67,7 +67,7 @@ class ImageGSAM:
         
         with self.data_lock:
             rgb_img = self.latest_rgb_img_cv2_np
-            # self.latest_rgb_img_cv2_np = None
+            self.latest_rgb_img_cv2_np = None
         
         if rgb_img is None:
             print("Dropping image since it is None")
@@ -124,7 +124,7 @@ if __name__ == "__main__":
     
     args = parser.parse_args(rospy.myargv()[1:])  # Exclude the script name
 
-    rospy.init_node('depth_from_cam', anonymous=False)
+    rospy.init_node('obj_detection', anonymous=False)
     e = ImageGSAM(
         rgb_image_topic="/camera/rgb/image_raw",
         output_topic="/gsam_output",
