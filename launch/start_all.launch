@@ -23,7 +23,8 @@
 
   <!-- Start Velodyne, and 3D to 2D conversions -->
   <include file="$(find spot_autonomy)/launch/velodyne.launch">
-    <arg name="lidarmode" value="$(arg lidarmode)" adaptor_remap="$(arg adaptor_remap)" />
+    <arg name="lidarmode" value="$(arg lidarmode)" />
+    <arg name="adaptor_remap" value="$(arg adaptor_remap)" />
   </include>
 
   <include file="$(find spot_autonomy)/launch/start_clearpath_spot.launch">
@@ -138,21 +139,21 @@
      respawn="false"
      respawn_delay="2" >
      	<remap if='$(arg adaptor_remap)' from='/autonomy_arbiter/enabled' to='/adaptors/sub/navigation/autonomy_arbiter/enabled' />
-	<remap if='$(arg adaptor_remap)' from='/camera/rgb/image_raw/compressed' to='/adaptors/sub/navigation/camera/rgb/image_raw/compressed' />
-	<remap if='$(arg adaptor_remap)' from='/kinect_laserscan' to='/adaptors/sub/navigation/kinect_laserscan' />
-	<remap if='$(arg adaptor_remap)' from='/ldos/localization' to='/adaptors/sub/navigation/ldos/localization' />
-	<remap if='$(arg adaptor_remap)' from='/ldos/velodyne_2dscan_highbeams' to='/adaptors/sub/navigation/ldos/velodyne_2dscan_highbeams' />
-	<remap if='$(arg adaptor_remap)' from='/localization' to='/adaptors/sub/navigation/localization' />
-	<remap if='$(arg adaptor_remap)' from='/move_base_simple/goal' to='/adaptors/sub/navigation/move_base_simple/goal' />
-	<remap if='$(arg adaptor_remap)' from='/navigation/cmd_vel' to='/adaptors/pub/navigation/navigation/cmd_vel' />
-	<remap if='$(arg adaptor_remap)' from='/odom' to='/adaptors/sub/navigation/odom' />
-	<remap if='$(arg adaptor_remap)' from='/reset_nav_goals' to='/adaptors/sub/navigation/reset_nav_goals' />
-	<remap if='$(arg adaptor_remap)' from='/spot/ldos/odometry' to='/adaptors/sub/navigation/spot/ldos/odometry' />
-	<remap if='$(arg adaptor_remap)' from='/tf' to='/adaptors/sub/navigation/tf' />
-	<remap if='$(arg adaptor_remap)' from='/tf_static' to='/adaptors/sub/navigation/tf_static' />
-	<remap if='$(arg adaptor_remap)' from='/velodyne_2dscan_highbeams' to='/adaptors/sub/navigation/velodyne_2dscan_highbeams' />
-	<remap if='$(arg adaptor_remap)' from='/visualization' to='/adaptors/pub/navigation/visualization' />
-    <remap if="$(eval lidarmode == 'cam' or lidarmode == 'model')" from="/velodyne_2dscan_highbeams" to="/camdepth_scan" />
+      <remap if='$(arg adaptor_remap)' from='/camera/rgb/image_raw/compressed' to='/adaptors/sub/navigation/camera/rgb/image_raw/compressed' />
+      <remap if='$(arg adaptor_remap)' from='/kinect_laserscan' to='/adaptors/sub/navigation/kinect_laserscan' />
+      <remap if='$(arg adaptor_remap)' from='/ldos/localization' to='/adaptors/sub/navigation/ldos/localization' />
+      <remap if='$(arg adaptor_remap)' from='/ldos/velodyne_2dscan_highbeams' to='/adaptors/sub/navigation/ldos/velodyne_2dscan_highbeams' />
+      <remap if='$(arg adaptor_remap)' from='/localization' to='/adaptors/sub/navigation/localization' />
+      <remap if='$(arg adaptor_remap)' from='/move_base_simple/goal' to='/adaptors/sub/navigation/move_base_simple/goal' />
+      <remap if='$(arg adaptor_remap)' from='/navigation/cmd_vel' to='/adaptors/pub/navigation/navigation/cmd_vel' />
+      <remap if='$(arg adaptor_remap)' from='/odom' to='/adaptors/sub/navigation/odom' />
+      <remap if='$(arg adaptor_remap)' from='/reset_nav_goals' to='/adaptors/sub/navigation/reset_nav_goals' />
+      <remap if='$(arg adaptor_remap)' from='/spot/ldos/odometry' to='/adaptors/sub/navigation/spot/ldos/odometry' />
+      <remap if='$(arg adaptor_remap)' from='/tf' to='/adaptors/sub/navigation/tf' />
+      <remap if='$(arg adaptor_remap)' from='/tf_static' to='/adaptors/sub/navigation/tf_static' />
+      <remap if='$(arg adaptor_remap)' from='/velodyne_2dscan_highbeams' to='/adaptors/sub/navigation/velodyne_2dscan_highbeams' />
+      <remap if='$(arg adaptor_remap)' from='/visualization' to='/adaptors/pub/navigation/visualization' />
+      <remap if="$(eval lidarmode == 'cam' or lidarmode == 'model')" from="/velodyne_2dscan_highbeams" to="/camdepth_scan" />
   </node>
 
   <node name="robofleet_client"
