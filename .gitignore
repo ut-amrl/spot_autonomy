@@ -6,3 +6,4 @@ lib
 **/*.vscode
 **/*.clang-format
 **/__pycache__
+*.pt
