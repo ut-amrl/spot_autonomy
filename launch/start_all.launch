@@ -52,7 +52,10 @@
       cwd="node"
       respawn="false"
       if="$(eval sterling)"
-      output="screen" />
+      output="screen">
+      <remap if='$(arg adaptor_remap)' from='/camera/rgb/image_raw/compressed' to='/adaptors/sub/bev_node/camera/rgb/image_raw/compressed/' />
+      <remap if='$(arg adaptor_remap)' from='/bev/single/compressed' to='/adaptors/pub/bev_node/bev/single/compressed' />
+  </node>
 
   <node name="sterling"
       pkg="spot_autonomy"
@@ -62,7 +65,9 @@
       respawn="true"
       respawn_delay="2"
       if="$(eval sterling)"
-      output="screen" />
+      output="screen" >
+      <remap if='$(arg adaptor_remap)' from='/bev/single/compressed' to='/adaptors/sub/sterling/bev/single/compressed' />
+  </node>
 
   <node name="camdepth"
       pkg="spot_autonomy"
