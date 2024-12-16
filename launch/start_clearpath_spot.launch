@@ -1,6 +1,6 @@
 <launch>
-  <arg name="username" default="amrl_user" />
-  <arg name="password" default="7DigitPrecision!" />
+  <arg name="username" default="$(env SPOT_USERNAME)" />
+  <arg name="password" default="$(env SPOT_PASSWORD)" />
   <arg name="hostname" default="192.168.50.3" />
   <arg name="cmd_dt" default="0.125" />
   <arg name="adaptor_remap" default="false" />
