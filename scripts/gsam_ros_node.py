@@ -17,7 +17,7 @@ from ultralytics import YOLO
 import torchvision.transforms as T
 
 class ImageGSAM:
-    def __init__(self, rgb_image_topic: str, output_topic: str, device: str = None, model='gsam', use_threading=True):
+    def __init__(self, rgb_image_topic: str, output_topic: str, device: str = None, model='gsam', use_threading=True, stats=False):
         if device is not None:
             self.DEVICE = torch.device(device)
         else:
@@ -28,7 +28,8 @@ class ImageGSAM:
         
         self.latest_rgb_img_cv2_np = torch.rand(1536, 2048, 3) # this is the size of images received from Kinect
         self.use_threading = use_threading
-        
+        self.stats = stats
+
         self.data_lock = threading.Lock()
         self.model_lock = threading.Lock()
 
@@ -45,7 +46,7 @@ class ImageGSAM:
         self.ann_pub = rospy.Publisher(output_topic, std_msgs.msg.String, queue_size=1)
         self.threading_stats = rospy.Publisher('/gsam_stats', std_msgs.msg.String, queue_size=1)
         self.all_threads = []
-        rospy.Timer(rospy.Duration(1), lambda event: self.main())
+        rospy.Timer(rospy.Duration(1/10), lambda event: self.main())
 
     def setup_model(self):
         if self.model == 'gsam':
@@ -67,7 +68,8 @@ class ImageGSAM:
         
         with self.data_lock:
             rgb_img = self.latest_rgb_img_cv2_np
-            self.latest_rgb_img_cv2_np = None
+            if not self.stats:
+                self.latest_rgb_img_cv2_np = None
         
         if rgb_img is None:
             print("Dropping image since it is None")
@@ -90,6 +92,9 @@ class ImageGSAM:
             self.all_threads.append(thread)
         else:
             function_to_call(*args)
+        
+        if self.stats:
+            self.latest_rgb_img_cv2_np = torch.rand(1536, 2048, 3)
 
     @torch.inference_mode()
     def yolo_inference(self, rgb_img, classes, invocation_id):
@@ -102,6 +107,9 @@ class ImageGSAM:
         with self.model_lock:
             stats = self.yolo_model(rgb_img, verbose=False)[0].speed
         
+        if self.stats:
+            print(stats)
+        
         self.ann_pub.publish(str(stats))
 
     @torch.inference_mode()
@@ -111,6 +119,9 @@ class ImageGSAM:
             for clsname in classes:
                 ann_img, detections, per_class_mask = self.gsam_model.predict_and_segment_on_image(img=rgb_img, text_prompts=clsname)
         end = time.time()
+        if self.stats:
+            print(f"start={start} end={end}\n")
+        
         self.ann_pub.publish(f"start={start} end={end}\n")
         
     def rgb_callback(self, msg):
@@ -121,6 +132,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--device', type=str, default='cuda', help='device: cuda or cpu')
     parser.add_argument('--model', type=str, default='yolo11n-obb.pt', help='What model to use? available: [gsam, yolo11n.pt , yolo11n-pose.pt, yolo11n-seg.pt (200ms), yolo11n-obb.pt (200ms), yolo11n-cls.pt]')
+    parser.add_argument('--stats', action='store_true', default=False, help="Print stats (and continuously run forward passes even if Kinect isn't connected)")
+    parser.add_argument('--threading', action='store_true', default=False, help="Enable multi-threaded preprocess?")
     
     args = parser.parse_args(rospy.myargv()[1:])  # Exclude the script name
 
@@ -129,8 +142,11 @@ if __name__ == "__main__":
         rgb_image_topic="/camera/rgb/image_raw",
         output_topic="/gsam_output",
         device=args.device,
-        model=args.model
+        model=args.model,
+        stats=args.stats,
+        use_threading=args.threading
     )
+
     time.sleep(1)
     try:
         rospy.spin()

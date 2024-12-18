@@ -10,7 +10,7 @@ import torch
 import time
 import yaml
 import sensor_msgs.point_cloud2 as pc2
-from std_msgs.msg import Header
+from std_msgs.msg import Header, String
 import math
 from repos.depthany2.metric_depth.depth_anything_v2.dpt import DepthAnythingV2
 import argparse
@@ -20,12 +20,13 @@ torch.backends.cuda.matmul.allow_tf32 = True
 class ImageDepthLidar:
     def __init__(self, cam_intrinsics_filepath: str, cam_extrinsics_filepath: str, lidar_actual_extrinsics_filepath: str,
                  depth_image_topic: str, rgb_image_topic: str, point_cloud_topic: str,
-                 mode: str, device: str = None):
+                 mode: str, device: str = None, stats:bool = False):
         if device is not None:
             self.DEVICE = torch.device(device)
         else:
             self.DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.MODE = mode
+        self.stats = stats
         self.cam_intrinsics_filepath = cam_intrinsics_filepath
         self.cam_extrinsics_filepath = cam_extrinsics_filepath
         self.lidar_actual_extrinsics_filepath = lidar_actual_extrinsics_filepath
@@ -34,10 +35,17 @@ class ImageDepthLidar:
 
         self.cv_bridge = CvBridge()
         self.latest_depth_img_cv2_np = None
-        self.latest_rgb_img_cv2_np = None
+        if self.stats:
+            self.latest_rgb_img_cv2_np = torch.rand(1536, 2048, 3).numpy()
+            self.latest_rgb_img_cv2_np = (self.latest_rgb_img_cv2_np * 255).astype(np.uint8)
+            self.stats_pub = rospy.Publisher("/depth/stats", String, queue_size=1)
+        else:
+            self.latest_rgb_img_cv2_np = None
+
         rospy.Subscriber(depth_image_topic, CompressedImage, self.depth_callback, queue_size=1)
         rospy.Subscriber(rgb_image_topic, Image, self.rgb_callback, queue_size=1)
         self.pc_pub = rospy.Publisher(point_cloud_topic, PointCloud2, queue_size=1)
+        
         rospy.Timer(rospy.Duration(1 / 10), lambda event: self.main(self.latest_depth_img_cv2_np, self.latest_rgb_img_cv2_np))
 
     def setup_(self):
@@ -57,6 +65,7 @@ class ImageDepthLidar:
 
     @torch.inference_mode()
     def main(self, depth_img, rgb_img, event=None):
+        start_time = time.time()
         with torch.device(self.DEVICE):
             if self.MODE == "cam":
                 if depth_img is None:
@@ -65,29 +74,34 @@ class ImageDepthLidar:
             elif self.MODE == "model":
                 if rgb_img is None:
                     return
-                print("Inferencing depth")
                 depth_arr = self.depth_model.infer_image(rgb_img)
-                print("Inferencing depth done", depth_arr.shape)
             else:
                 raise ValueError("Invalid mode")
 
-            scale_default = 0.6 if self.MODE == "model" else 10
-            SCALE = rospy.get_param("/SCALE", scale_default)
-            depth_arr = SCALE * depth_arr
+            if not self.stats:
+                scale_default = 0.6 if self.MODE == "model" else 10
+                SCALE = rospy.get_param("/SCALE", scale_default)
+                depth_arr = SCALE * depth_arr
 
-            kinect_points = ImageDepthLidar.depth2points(depth_arr, self.cam_intrinsics_dict)
-            lidar_points = self.project_points_kinect_to_lidar(kinect_points)
+                kinect_points = ImageDepthLidar.depth2points(depth_arr, self.cam_intrinsics_dict)
+                lidar_points = self.project_points_kinect_to_lidar(kinect_points)
 
-            fields = [
-                PointField('x', 0, PointField.FLOAT32, 1),
-                PointField('y', 4, PointField.FLOAT32, 1),
-                PointField('z', 8, PointField.FLOAT32, 1),
-            ]
-            header = Header()
-            header.stamp = rospy.Time.now()
-            header.frame_id = "velodyne"
-            ros_pcd = pc2.create_cloud(header, fields, lidar_points)
-        self.pc_pub.publish(ros_pcd)
+                fields = [
+                    PointField('x', 0, PointField.FLOAT32, 1),
+                    PointField('y', 4, PointField.FLOAT32, 1),
+                    PointField('z', 8, PointField.FLOAT32, 1),
+                ]
+                header = Header()
+                header.stamp = rospy.Time.now()
+                header.frame_id = "velodyne"
+                ros_pcd = pc2.create_cloud(header, fields, lidar_points)
+        end_time = time.time()
+
+        if self.stats:
+            print(f"depth: {end_time-start_time}")
+            self.stats_pub.publish(f"depth: {end_time-start_time}\n")
+        else:
+            self.pc_pub.publish(ros_pcd)
 
     def rgb_callback(self, msg):
         self.latest_rgb_img_cv2_np = self.cv_bridge.imgmsg_to_cv2(msg, desired_encoding="passthrough")
@@ -241,6 +255,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', type=str, default='model', help='mode: model or cam')
     parser.add_argument('--device', type=str, default=None, help='device: cuda or cpu')
+    parser.add_argument('--stats', action='store_true', default=False, help="Print model FP time stats")
     args = parser.parse_args(rospy.myargv()[1:])  # Exclude the script name
 
     rospy.init_node('depth_from_cam', anonymous=False)
@@ -252,7 +267,8 @@ if __name__ == "__main__":
         rgb_image_topic="/camera/rgb/image_raw",
         point_cloud_topic="/camdepth_points",
         mode=args.mode,
-        device=args.device
+        device=args.device,
+        stats=args.stats
     )
     time.sleep(1)
     try:
