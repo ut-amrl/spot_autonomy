@@ -1,2 +1,3 @@
 matplotlib
+termcolor
 opencv-python
