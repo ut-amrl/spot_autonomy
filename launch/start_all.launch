@@ -16,6 +16,7 @@
   <arg name="lidarmode" default="lidar" />  <!-- options: lidar|cam|model -->
   <arg name="device_camdepth" default="cuda" />  <!-- options: cuda|cpu -->
   <arg name="gsam" default="true" />
+  <arg name="gsam_device" default="cuda" />
 
   <!-- Start Velodyne, and 3D to 2D conversions -->
   <include file="$(find spot_autonomy)/launch/velodyne.launch">
@@ -69,6 +70,7 @@
       type="gsam_ros_node.py"
       cwd="node"
       respawn="true"
+      args="--device $(arg gsam_device)"
       respawn_delay="2"
       if="$(eval gsam)"
       output="screen" />
