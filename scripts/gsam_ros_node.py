@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import json
 import rospy
 import threading
 import time
@@ -98,19 +99,27 @@ class ImageGSAM:
 
     @torch.inference_mode()
     def yolo_inference(self, rgb_img, classes, invocation_id):
+        stats = dict()
+        stats['start_time'] = time.time()
+        
         rgb_img = torch.tensor(rgb_img)
         rgb_img = rgb_img.permute((2, 0, 1))
-        rgb_img = T.RandomAffine(degrees=45, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=(-10, 10))(rgb_img)
+
+        if not self.stats:    
+            rgb_img = T.RandomAffine(degrees=45, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=(-10, 10))(rgb_img)
+        
         rgb_img = rgb_img.reshape(1, *rgb_img.shape)
         rgb_img = rgb_img.float() / 255
 
         with self.model_lock:
-            stats = self.yolo_model(rgb_img, verbose=False)[0].speed
+            stats.update(self.yolo_model(rgb_img, verbose=False)[0].speed)
+        
+        stats['end_time'] = time.time()
+        stats = json.dumps(stats)
         
         if self.stats:
             print(stats)
-        
-        self.ann_pub.publish(str(stats))
+        self.ann_pub.publish(stats)
 
     @torch.inference_mode()
     def gsam_inference(self, rgb_img, classes, invocation_id):
@@ -131,7 +140,7 @@ class ImageGSAM:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--device', type=str, default='cuda', help='device: cuda or cpu')
-    parser.add_argument('--model', type=str, default='yolo11n-obb.pt', help='What model to use? available: [gsam, yolo11n.pt , yolo11n-pose.pt, yolo11n-seg.pt (200ms), yolo11n-obb.pt (200ms), yolo11n-cls.pt]')
+    parser.add_argument('--model', type=str, default='yolo11n.pt', help='What model to use? available: [gsam, yolo11n.pt , yolo11n-pose.pt, yolo11n-seg.pt (200ms), yolo11n-obb.pt (200ms), yolo11n-cls.pt]')
     parser.add_argument('--stats', action='store_true', default=False, help="Print stats (and continuously run forward passes even if Kinect isn't connected)")
     parser.add_argument('--threading', action='store_true', default=False, help="Enable multi-threaded preprocess?")
     
