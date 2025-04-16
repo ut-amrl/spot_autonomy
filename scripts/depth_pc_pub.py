@@ -97,9 +97,10 @@ class ImageDepthLidar:
                 ros_pcd = pc2.create_cloud(header, fields, lidar_points)
         end_time = time.time()
 
+        log_string = f"{start_time} {end_time} {end_time - start_time}"
         if self.stats:
-            print(f"depth: {end_time-start_time}")
-            self.stats_pub.publish(f"depth: {end_time-start_time}\n")
+            print(log_string)
+            self.stats_pub.publish(f"{log_string}\n")
         else:
             self.pc_pub.publish(ros_pcd)
 
